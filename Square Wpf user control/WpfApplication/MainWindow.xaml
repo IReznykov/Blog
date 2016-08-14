@@ -1,0 +1,20 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApplication"
+        xmlns:Views="clr-namespace:WpfApplication.Views" x:Class="WpfApplication.MainWindow"
+        mc:Ignorable="d"
+        Title="Square WPF user control" Height="350" Width="525">
+    <Grid>
+
+        <Views:CellControl
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Margin="10,10,10,10"
+            StartColor="LightGoldenrodYellow"
+            FinishColor="Green"/>
+
+    </Grid>
+</Window>

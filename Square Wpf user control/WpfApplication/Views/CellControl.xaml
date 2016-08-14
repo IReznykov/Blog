@@ -1,0 +1,44 @@
+﻿<UserControl
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:prism="http://prismlibrary.com/"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:WpfApplication.Converters"
+             xmlns:local="clr-namespace:WpfApplication.Views"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             x:Class="WpfApplication.Views.CellControl"             
+             mc:Ignorable="d"
+             d:DesignHeight="100" d:DesignWidth="50">
+
+<UserControl.Resources>
+    <converters:MinDoubleConverter x:Key="SizeConverter" />
+</UserControl.Resources>
+
+    <DockPanel x:Name="MainPanel"
+               LastChildFill="True">
+        <Ellipse
+            x:Name="CellEllipse" 
+            Visibility="Visible">
+            <Ellipse.Fill>
+                <RadialGradientBrush Center="0.625,0.33" GradientOrigin="0.625,0.33" RadiusY="0.685" RadiusX="0.685">
+                    <GradientStop Color="{Binding StartColor, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:CellControl}}, FallbackValue=#FFF5F5F5}"/>
+                    <GradientStop Color="{Binding FinishColor, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:CellControl}}, FallbackValue=#FF00008B}"
+                                  Offset="0.825"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+            <Ellipse.Width>
+                <MultiBinding Converter="{StaticResource SizeConverter}" ConverterParameter="2" FallbackValue="20">
+                    <Binding ElementName="MainPanel" Path="ActualWidth" Mode="OneWay"/>
+                    <Binding ElementName="MainPanel" Path="ActualHeight" Mode="OneWay"/>
+                </MultiBinding>
+            </Ellipse.Width>
+            <Ellipse.Height>
+                <MultiBinding Converter="{StaticResource SizeConverter}" ConverterParameter="2" FallbackValue="20">
+                    <Binding ElementName="MainPanel" Path="ActualWidth" Mode="OneWay"/>
+                    <Binding ElementName="MainPanel" Path="ActualHeight" Mode="OneWay"/>
+                </MultiBinding>
+            </Ellipse.Height>
+        </Ellipse>
+    </DockPanel>
+</UserControl>
