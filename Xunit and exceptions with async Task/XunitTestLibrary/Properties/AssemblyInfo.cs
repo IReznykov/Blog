@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("XunitTestLibrary")]
 [assembly: AssemblyDescription("Contains xunit test that cover properties of Data object in synchronous and asynchronous calls")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("XunitTestLibrary")]
-[assembly: AssemblyCopyright("Copyright © Illya Reznykov 2016")]
+[assembly: AssemblyCompany("Illya Reznykov")]
+[assembly: AssemblyProduct("Worpress blog http://ireznykov.wordpress.com")]
+[assembly: AssemblyCopyright("Copyright © 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

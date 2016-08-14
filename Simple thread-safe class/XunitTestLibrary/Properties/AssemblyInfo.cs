@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("XunitTestLibrary_41")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("XunitTestLibrary")]
+[assembly: AssemblyDescription("Library contains code for simple thread-safe class")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("XunitTestLibrary_41")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCompany("Illya Reznykov")]
+[assembly: AssemblyProduct("Worpress blog http://ireznykov.wordpress.com")]
+[assembly: AssemblyCopyright("Copyright © 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
