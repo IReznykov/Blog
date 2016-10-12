@@ -1,0 +1,83 @@
+<UserControl x:Class="Part2Module.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:prism="http://prismlibrary.com/"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:viewModels="clr-namespace:Part2Module.ViewModels"
+             prism:ViewModelLocator.AutoWireViewModel="True">
+
+    <UserControl.Resources>
+    </UserControl.Resources>
+
+    <Grid d:DataContext="{d:DesignInstance Type=viewModels:DesignSettingsViewModel}">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="150"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            Grid.Row="0"
+            Grid.Column="0"
+            Text="Name"/>
+
+        <TextBox
+            Grid.Row="0"
+            Grid.Column="1"
+            Text="{Binding Name, Mode=TwoWay}" 
+            TabIndex="201"
+            Margin="5 2 5 2"/>
+
+        <TextBlock
+            Grid.Row="1"
+            Grid.Column="0"
+            Text="Background"/>
+
+        <xctk:ColorPicker
+            Grid.Row="1"
+            Grid.Column="1"
+            x:Name="BackgroundColor"
+            SelectedColor="{Binding BackgroundColor, Mode=TwoWay}"
+            TabIndex="202"
+            Margin="5 2 5 2"/>
+
+        <TextBlock 
+            Grid.Row="2"
+            Grid.Column="0"
+            Text="Width"/>
+
+        <xctk:IntegerUpDown
+            Grid.Row="2"
+            Grid.Column="1"
+            Text="{Binding Width, Mode=TwoWay}"
+            Minimum="0"
+            Maximum="1000"
+            TabIndex="203"
+            Margin="5 2 5 2"/>
+
+        <TextBlock
+            Grid.Row="3"
+            Grid.Column="0"
+            Text="Height"/>
+
+        <xctk:IntegerUpDown
+            Grid.Row="3"
+            Grid.Column="1"
+            Text="{Binding Height, Mode=TwoWay}"
+            Minimum="0"
+            Maximum="1000"
+            TabIndex="204"
+            Margin="5 2 5 2"/>
+
+    </Grid>
+</UserControl>
