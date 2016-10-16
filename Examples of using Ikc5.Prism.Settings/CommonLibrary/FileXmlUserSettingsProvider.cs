@@ -12,7 +12,7 @@ using Prism.Logging;
 
 namespace CommonLibrary
 {
-    public class FileXmlUserSettingsProvider<T> : LocalXmlUserSettingsProvider<T>, IUserSettingsProvider<T> where T : class, IUserSettings
+    public class FileXmlUserSettingsProvider<T> : LocalXmlUserSettingsProvider<T> where T : class, IUserSettings
 	{
 	    public FileXmlUserSettingsProvider(ILiteObjectService liteObjectService, ILoggerFacade logger)
 			: base(liteObjectService, logger)
