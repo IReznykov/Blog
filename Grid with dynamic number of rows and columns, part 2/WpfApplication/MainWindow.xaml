@@ -1,0 +1,108 @@
+﻿<Window x:Class="WpfApplication.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApplication"
+        xmlns:views="clr-namespace:WpfApplication.Views"
+        mc:Ignorable="d"
+        Title="MainWindow"
+        MinHeight="200" MinWidth="300"
+        Height="350" Width="525">
+    
+    <Grid Background="WhiteSmoke">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="50"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <DockPanel Grid.Column="1">
+            <views:DynamicGridView x:Name="DynamicGridView" DataContext="{Binding}"/>
+        </DockPanel>
+
+        <Grid Grid.Column="0">
+            
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock
+                Grid.Row="0"
+                Text="Cell width"
+                Margin="2"/>
+            
+            <TextBox
+                Grid.Row="1"
+                Text="{Binding Path=CellWidth}"
+                Margin="2"/>
+
+            <TextBlock
+                Grid.Row="2"
+                Text="Cell height"
+                Margin="2"/>
+            
+            <TextBox
+                Grid.Row="3"
+                Text="{Binding Path=CellHeight}"
+                Margin="2"/>
+
+            <TextBlock
+                Grid.Row="4"
+                Text="Columns"
+                Margin="2"/>
+
+            <TextBox
+                Grid.Row="5"
+                IsEnabled="False"
+                Text="{Binding Path=GridWidth}"
+                Margin="2"/>
+
+            <TextBlock
+                Grid.Row="6"
+                Text="Rows"
+                Margin="2"/>
+
+            <TextBox
+                Grid.Row="7"
+                IsEnabled="False"
+                Text="{Binding Path=GridHeight}"
+                Margin="2"/>
+
+            <TextBlock
+                Grid.Row="8"
+                Text="View width"
+                Margin="2"/>
+
+            <TextBox
+                Grid.Row="9"
+                IsEnabled="False"
+                Text="{Binding Path=ViewWidth}"
+                Margin="2"/>
+
+            <TextBlock
+                Grid.Row="10"
+                Text="View height"
+                Margin="2"/>
+
+            <TextBox
+                Grid.Row="11"
+                IsEnabled="False"
+                Text="{Binding Path=ViewHeight}"
+                Margin="2"/>
+        </Grid>
+        
+    </Grid>
+</Window>
