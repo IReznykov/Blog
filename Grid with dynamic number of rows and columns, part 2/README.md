@@ -1,4 +1,4 @@
-# Post Square WPF user control
+# Post Grid with dynamic number of rows and columns, part 2
 There is a code for the post https://ireznykov.com/2017/01/04/grid-with-dynamic-number-of-rows-and-columns-part-2/
 
 #Abstract

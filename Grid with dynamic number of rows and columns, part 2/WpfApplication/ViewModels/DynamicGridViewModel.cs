@@ -83,7 +83,7 @@ namespace WpfApplication.ViewModels
 		/// <summary>
 		/// Recurrent method that analyzes current 2-dimensional array of
 		/// view models and adapt it to current size of data model. Method
-		/// strats from 0th row and call itself for all necessary rows.
+		/// starts from 0th row and call itself for all necessary rows.
 		/// </summary>
 		/// <param name="rowNumber">Row number to analyze</param>
 		/// <param name="cancellationToken">Cancellation token</param>
@@ -106,9 +106,9 @@ namespace WpfApplication.ViewModels
 						// In order to have responsive GUI, ApplicationIdle is quite good
 						// Other priority could be used making adding rows quicker.
 						Application.Current.Dispatcher.Invoke(
-							() => Cells.RemoveAt(positionToProcess),
-							DispatcherPriority.ApplicationIdle,
-							cancellationToken);
+									() => Cells.RemoveAt(positionToProcess),
+									DispatcherPriority.ApplicationIdle,
+									cancellationToken);
 					}
 					else
 					{
@@ -121,9 +121,9 @@ namespace WpfApplication.ViewModels
 					// call for rows that already created and should be reInit
 					// and maybe changed in their size
 					Application.Current.Dispatcher.Invoke(
-						() => UpdateCellViewModelRow(positionToProcess),
-						DispatcherPriority.ApplicationIdle,
-						cancellationToken);
+								() => UpdateCellViewModelRow(positionToProcess),
+								DispatcherPriority.ApplicationIdle,
+								cancellationToken);
 				}
 				else
 				{
@@ -131,9 +131,9 @@ namespace WpfApplication.ViewModels
 					// In order to have responsive GUI, ApplicationIdle is quite good
 					// Other priority could be used making adding rows quicker.
 					Application.Current.Dispatcher.Invoke(
-						() => CreateCellViewModelRow(positionToProcess),
-						DispatcherPriority.ApplicationIdle,
-						cancellationToken);
+								() => CreateCellViewModelRow(positionToProcess),
+								DispatcherPriority.ApplicationIdle,
+								cancellationToken);
 				}
 
 				// create asynchronous task for processing next row
@@ -175,7 +175,7 @@ namespace WpfApplication.ViewModels
 		private void UpdateCellViewModelRow(int rowNumber)
 		{
 			var row = Cells[rowNumber];
-			// delete additional cells
+			// delete extra cells
 			while (row.Count > GridWidth)
 				row.RemoveAt(GridWidth);
 			for (var pos = 0; pos < GridWidth; pos++)

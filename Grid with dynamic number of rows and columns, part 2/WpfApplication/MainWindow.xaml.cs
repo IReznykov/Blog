@@ -23,19 +23,10 @@ namespace WpfApplication
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		public MainWindow(IUnityContainer container)
+		public MainWindow(IDynamicGridViewModel dynamicGridViewModel)
 		{
 			InitializeComponent();
-
-			//var dynamicGridViewModel = container.Resolve<IDynamicGridViewModel>();
-
-			//dynamicGridViewModel.CellWidth = 25;
-			//dynamicGridViewModel.CellHeight = 25;
-			//dynamicGridViewModel.BorderColor = Colors.Blue;
-			//dynamicGridViewModel.StartColor = Colors.Azure;
-			//dynamicGridViewModel.FinishColor = Colors.CornflowerBlue;
-
-			this.DataContext = container.Resolve<IDynamicGridViewModel>();
+			DataContext = dynamicGridViewModel;
 		}
 	}
 }

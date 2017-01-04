@@ -35,7 +35,6 @@
                               RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}},
                               Converter={StaticResource ColorToBrushConverter},
                               FallbackValue=#FF40FF40}"/>
-              <!--Value ="GreenYellow"></Setter>-->
             </DataTrigger>
             <DataTrigger Binding="{Binding Path=Cell.State}" Value="True">
               <Setter Property="Border.Background"
@@ -43,11 +42,9 @@
                               RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}},
                               Converter={StaticResource ColorToBrushConverter},
                               FallbackValue=#FFFF4040}"/>
-              <!--Value="OrangeRed"> </Setter>-->
             </DataTrigger>
           </Style.Triggers>
         </Style>
-        <!--<SolidColorBrush Color="{Binding Path=Settings.CellColor, Mode=OneWay, FallbackValue=#FFF0F000}"/>-->
       </Border.Style>
 
       <Border.InputBindings>
