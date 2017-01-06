@@ -1,0 +1,59 @@
+﻿<UserControl x:Class="WpfApplication.Views.LineChartView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WpfApplication.Views"
+             xmlns:oxy="http://oxyplot.org/wpf"
+             mc:Ignorable="d" 
+             xmlns:viewModels="clr-namespace:WpfApplication.ViewModels"
+             d:DesignHeight="300" d:DesignWidth="300">
+
+    <Grid d:DataContext="{d:DesignInstance Type=viewModels:DesignLineChartViewModel, IsDesignTimeCreatable=True}">
+
+        <oxy:Plot
+            x:Name="CellCountPlot"
+            Grid.Row="0" Grid.Column="0"
+            LegendPlacement="Outside"
+			LegendPosition="TopCenter"
+			LegendOrientation="Horizontal"
+			LegendBorderThickness="0"
+            PlotAreaBorderThickness="0"
+            IsEnabled="False"
+            Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+
+            <oxy:Plot.Axes>
+                <oxy:LinearAxis
+                    x:Name="IndexAxis"
+                    Position="Bottom"
+                    TickStyle="Crossing"
+                    MajorGridlineStyle="None" MinorGridlineStyle="None" 
+                    PositionAtZeroCrossing="True"
+                    AxislineThickness="1"
+                    AbsoluteMinimum="0" AbsoluteMaximum="100"
+                    AxislineStyle="Solid"/>
+
+                <oxy:LinearAxis
+                    x:Name="CountAxis"
+                    Position="Left"
+                    TickStyle="Outside"
+                    MajorGridlineStyle="Dot" MinorGridlineStyle="Dot"
+                    AxislineThickness="1"
+                    AxislineStyle="Solid"/>
+
+            </oxy:Plot.Axes>
+
+            <oxy:Plot.Series>
+                <oxy:LineSeries
+                    x:Name="TotalSeries"
+                    Title="Count"
+                    ItemsSource="{Binding CountList}"
+                    DataFieldX="X"
+                    DataFieldY="Y"
+                    Color="Blue"
+                    StrokeThickness="1"/>
+
+            </oxy:Plot.Series>
+        </oxy:Plot>
+    </Grid>
+</UserControl>

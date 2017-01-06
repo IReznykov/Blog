@@ -1,0 +1,33 @@
+﻿<Window x:Class="WpfApplication.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApplication"
+        xmlns:views="clr-namespace:WpfApplication.Views"
+        xmlns:viewModels="clr-namespace:WpfApplication.ViewModels"
+        mc:Ignorable="d"
+        Title="MainWindow"
+        MinWidth="300" MinHeight="200"
+        d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=False}">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <ContentControl
+            Grid.Column="0">
+            <views:ColumnChartView
+                DataContext="{Binding ColumnChartViewModel}"/>
+        </ContentControl>
+
+        <ContentControl
+            Grid.Column="1">
+            <views:LineChartView
+                DataContext="{Binding LineChartViewModel}"/>
+        </ContentControl>
+
+    </Grid>
+</Window>
