@@ -1,0 +1,80 @@
+﻿<UserControl x:Class="Ikc5.ScreenSaver.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:prism="http://prismlibrary.com/"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:types="clr-namespace:Ikc5.ScreenSaver.Common.Models.Types;assembly=Ikc5.ScreenSaver.Common.Models"
+             xmlns:converters="clr-namespace:Ikc5.ScreenSaver.Common.Views.Converters;assembly=Ikc5.ScreenSaver.Common.Views"
+             xmlns:viewModels="clr-namespace:Ikc5.ScreenSaver.ViewModels"
+             prism:ViewModelLocator.AutoWireViewModel="True">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Ikc5.ScreenSaver.Common.Views;component/Styles/SettingsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid d:DataContext="{d:DesignInstance Type=viewModels:DesignSettingsViewModel, IsDesignTimeCreatable=True}">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="150"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!--Row #0 - Module Name-->
+        <TextBlock Grid.Row="0"
+                   Grid.Column="0"
+                   Text="Module name"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <ComboBox Grid.Row="0"
+                  Grid.Column="1"
+                  x:Name="ModuleName"
+                  Style="{StaticResource SettingsComboBoxStyle}"
+                  SelectedItem="{Binding Path=ModuleName, Mode=TwoWay}"
+                  ItemsSource="{Binding Path=ModuleNameCollection, Mode=OneWay}"
+                  TabIndex="0"/>
+
+        <!--Row #1 - Secondary monitor-->
+        <TextBlock Grid.Row="1"
+                   Grid.Column="0"
+                   Text="Secondary displays"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <ComboBox Grid.Row="1"
+                  Grid.Column="1"
+                  x:Name="SecondaryMonitorType"
+                  Style="{StaticResource SettingsComboBoxStyle}"
+                  SelectedItem="{Binding Path=SecondaryMonitorType, Mode=TwoWay}"
+                  ItemsSource="{Binding Source={converters:EnumBindingSource {x:Type types:SecondaryMonitorType}}}"
+                  TabIndex="1"/>
+
+        <!--Row #2 - Background-->
+        <TextBlock Grid.Row="2"
+                   Grid.Column="0"
+                   x:Name="BackroundColorLabel"
+                   Text="Background"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <xctk:ColorPicker Grid.Row="2"
+                          Grid.Column="1"
+                          x:Name="StartColor"
+                          SelectedColor="{Binding BackgroundColor, Mode=TwoWay}"
+                          Style="{StaticResource SettingsColorPickerStyle}"
+                          TabIndex="2"/>
+
+    </Grid>
+</UserControl>

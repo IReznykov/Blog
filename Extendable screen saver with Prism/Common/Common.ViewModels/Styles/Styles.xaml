@@ -1,0 +1,30 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/interactivedesigner/2006"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+    mc:Ignorable="d">
+
+    <!-- Styles.XAML defines a set of control styles that are common for whole application
+         It was taken from Prism examples, and adapted for current application -->
+
+ <!--Style for IntegerUpDown from extended WPF toolkit-->
+    <Style x:Key="SimpleIntegerUpDown" TargetType="{x:Type xctk:IntegerUpDown}">
+        <!--<Setter Property="Foreground" Value="{x:Static SystemColors.ControlTextBrush}"/>-->
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="ParsingNumberStyle" Value="Integer"/>
+        <Setter Property="UpdateValueOnEnterKey" Value="True"/>
+    </Style>
+
+    <!--Style for ColorPicker from extended WPF toolkit-->
+    <Style x:Key="SimpleColorPicker" TargetType="{x:Type xctk:ColorPicker}">
+        <!--<Setter Property="Foreground" Value="{x:Static SystemColors.ControlTextBrush}"/>-->
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="ColorMode" Value="ColorPalette"/>
+        <Setter Property="DisplayColorAndName" Value="True"/>
+    </Style>
+
+</ResourceDictionary>

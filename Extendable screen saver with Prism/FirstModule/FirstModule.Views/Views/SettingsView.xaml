@@ -1,0 +1,185 @@
+﻿<UserControl  x:Class="Ikc5.ScreenSaver.FirstModule.Views.SettingsView"
+              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:prism="http://prismlibrary.com/"             
+              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+              mc:Ignorable="d"
+              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+              xmlns:commonTypes="clr-namespace:Ikc5.ScreenSaver.Common.Models.Types;assembly=Ikc5.ScreenSaver.Common.Models"
+              xmlns:viewModels="clr-namespace:Ikc5.ScreenSaver.FirstModule.ViewModels"
+              xmlns:converters="clr-namespace:Ikc5.ScreenSaver.Common.Views.Converters;assembly=Ikc5.ScreenSaver.Common.Views"
+              prism:ViewModelLocator.AutoWireViewModel="True">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Ikc5.ScreenSaver.Common.Views;component/Styles/SettingsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid d:DataContext="{d:DesignInstance Type=viewModels:DesignSettingsViewModel, IsDesignTimeCreatable=True}">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="120"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!--Row #1 - Iteration options-->
+        <TextBlock Grid.Row="0"
+                   Grid.Column="0"
+                   Text="Iteration"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <TextBlock Grid.Row="0"
+                   Grid.Column="1"
+                   Text="Delay"
+                   HorizontalAlignment="Right"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <xctk:IntegerUpDown
+            Grid.Row="0"
+            Grid.Column="2"
+            Text="{Binding IterationDelay, Mode=TwoWay}"
+            Minimum="250"
+            Maximum="5000"
+            Style="{StaticResource SettingsNumericStyle}"
+            TabIndex="110"/>
+
+        <!--Row #2 - cell size-->
+        <TextBlock Grid.Row="1"
+                   Grid.Column="0"
+                   Text="Cell size"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <TextBlock Grid.Row="1"
+                   Grid.Column="1"
+                   Text="Width"
+                   HorizontalAlignment="Right"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <xctk:IntegerUpDown
+            Grid.Row="1"
+            Grid.Column="2"
+            Text="{Binding CellWidth, Mode=TwoWay}"
+            Maximum="200"
+            Style="{StaticResource SettingsNumericStyle}"
+            TabIndex="120"/>
+
+        <TextBlock Grid.Row="1"
+                   Grid.Column="3"
+                   Text="Height"
+                   HorizontalAlignment="Right"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <xctk:IntegerUpDown
+            Grid.Row="1"
+            Grid.Column="4"
+            Text="{Binding CellHeight, Mode=TwoWay}"
+            Maximum="200"
+            Style="{StaticResource SettingsNumericStyle}"
+            TabIndex="121"/>
+
+        <!--Row #4 - Cell colors-->
+        <TextBlock Grid.Row="2"
+                   Grid.Column="0"
+                   Text="Cell colors"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <TextBlock Grid.Row="2"
+                   Grid.Column="1"
+                   Text="Start"
+                   HorizontalAlignment="Right"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <xctk:ColorPicker
+            Grid.Row="2"
+            Grid.Column="2"
+            x:Name="StartColor"
+            SelectedColor="{Binding StartColor, Mode=TwoWay}"
+            Style="{StaticResource SettingsColorPickerStyle}"
+            TabIndex="130"/>
+
+        <TextBlock Grid.Row="2"
+                   Grid.Column="3"
+                   Text="Finish"
+                   HorizontalAlignment="Right"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <xctk:ColorPicker
+            Grid.Row="2"
+            Grid.Column="4"
+            x:Name="FinishColor"
+            SelectedColor="{Binding FinishColor, Mode=TwoWay}"
+            Style="{StaticResource SettingsColorPickerStyle}"
+            TabIndex="131"/>
+
+        <TextBlock Grid.Row="3"
+                   Grid.Column="0"
+                   Text="Border"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <TextBlock Grid.Row="3"
+                   Grid.Column="1"
+                   Text="Color"
+                   HorizontalAlignment="Right"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <xctk:ColorPicker
+            Grid.Row="3"
+            Grid.Column="2"
+            x:Name="BorderColor"
+            SelectedColor="{Binding BorderColor, Mode=TwoWay}"
+            Style="{StaticResource SettingsColorPickerStyle}"
+            TabIndex="132"/>
+
+        <!--Row #5 - Visible cell animation-->
+        <TextBlock Grid.Row="4"
+                   Grid.Column="0"
+                   Text="Cell animation"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <TextBlock Grid.Row="4"
+                   Grid.Column="1"
+                   Text="Type"
+                   HorizontalAlignment="Right"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <ComboBox
+            Grid.Row="4"
+            Grid.Column="2"
+            x:Name="AnimationType"
+            Style="{StaticResource SettingsComboBoxStyle}"
+            SelectedItem="{Binding Path=AnimationType, Mode=TwoWay}"
+            ItemsSource="{Binding Source={converters:EnumBindingSource {x:Type commonTypes:AnimationType}}}" 
+            TabIndex="150"/>
+
+        <TextBlock Grid.Row="4"
+                   Grid.Column="3"
+                   Text="Delay"
+                   HorizontalAlignment="Right"
+                   Style="{StaticResource SettingsTextBlockStyle}"/>
+
+        <xctk:IntegerUpDown
+            Grid.Row="4"
+            Grid.Column="4"
+            Text="{Binding AnimationDelay, Mode=TwoWay}"
+            Minimum="50"
+            Maximum="500"
+            Style="{StaticResource SettingsNumericStyle}"
+            TabIndex="151"/>
+
+    </Grid>
+</UserControl>
