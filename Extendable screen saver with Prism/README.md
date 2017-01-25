@@ -1,5 +1,5 @@
 # Post Extendable screen saver with Prism
-There is a code for the post https://ireznykov.com/2016/10/25/extendable-screen-saver-with-prism/
+There is a code for the post https://ireznykov.com/2017/01/25/extendable-screen-saver-with-prism/
 
 #Abstract
 The post is devoted to screen saver application written in Wpf with Prism pattern. Provided code is the complete application with two different animation patterns that are implemented in two modules. The application is modular and could be easily extended by adding new modules. 
