@@ -56,7 +56,7 @@
             <TextBlock
                 Grid.Row="0"
                    Grid.Column="1"
-                   Text="Grid Screen Saver, v.1.0"
+                   Text="Prism Screen Saver, v.1.0"
                    Style="{StaticResource SettingsTextBlockStyle}"/>
 
             <TextBlock
@@ -108,7 +108,7 @@
                 TextWrapping="WrapWithOverflow"
                 Style="{StaticResource SettingsTextBlockStyle}">
                 <Hyperlink
-                    NavigateUri="https://github.com/IReznykov/Blog"
+                    NavigateUri="https://github.com/IReznykov/Blog/tree/master/Extendable%20screen%20saver%20with%20Prism"
                     RequestNavigate="Hyperlink_RequestNavigate">
                     GitHub Repository
                 </Hyperlink>
