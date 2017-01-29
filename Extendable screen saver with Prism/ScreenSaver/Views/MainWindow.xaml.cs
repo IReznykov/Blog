@@ -32,10 +32,12 @@ namespace Ikc5.ScreenSaver.Views
 				Interval = TimeSpan.FromMilliseconds(1000),
 			};
 			_mouseTimer.Tick += MouseTimerTick;
+			Mouse.OverrideCursor = Cursors.None;
 		}
 
 		private void MainWindow_Loaded(object sender, RoutedEventArgs e)
 		{
+			Mouse.OverrideCursor = Cursors.None;
 			var dataContext = DataContext as IMainWindowModel;
 			dataContext?.SetViewCommand.Execute(null); 
 		}
@@ -67,6 +69,9 @@ namespace Ikc5.ScreenSaver.Views
 
 		private void MainWindow_MouseMove(object sender, MouseEventArgs e)
 		{
+			if (_isMenuOpen)
+				return;
+
 			Mouse.OverrideCursor = Cursors.Arrow;
 			_mouseTimer.Stop();
 			_mouseTimer.Start();
@@ -81,8 +86,6 @@ namespace Ikc5.ScreenSaver.Views
 		private void Window_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
 		{
 			_logger.Log("Window MouseRightButtonDown");
-			Mouse.OverrideCursor = Cursors.Arrow;
-			_mouseTimer.Start();
 		}
 
 		#endregion
@@ -102,8 +105,29 @@ namespace Ikc5.ScreenSaver.Views
 
 		private void MenuItem_OnClick(object sender, RoutedEventArgs e)
 		{
+			// show cursor if new dialog is opened
 			Mouse.OverrideCursor = Cursors.Arrow;
 			_mouseTimer.Stop();
+			_isMenuOpen = false;
+		}
+
+		private bool _isMenuOpen = false;
+
+		private void ContextMenu_OnOpened(object sender, RoutedEventArgs e)
+		{
+			// show cursor until menu is opened
+			_mouseTimer.Stop();
+			_isMenuOpen = true;
+			Mouse.OverrideCursor = Cursors.Arrow;
+		}
+
+		private void ContextMenu_OnClosed(object sender, RoutedEventArgs e)
+		{
+			if (!_isMenuOpen)
+				return;
+
+			_isMenuOpen = false;
+			Mouse.OverrideCursor = Cursors.None;
 		}
 	}
 }

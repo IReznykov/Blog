@@ -6,7 +6,6 @@
         xmlns:viewModels="clr-namespace:Ikc5.ScreenSaver.ViewModels"
         mc:Ignorable="d"
         Title="EmptyWindow"
-        Background="Green"
         ShowInTaskbar="False"
         ResizeMode="NoResize"
         WindowStyle="None"

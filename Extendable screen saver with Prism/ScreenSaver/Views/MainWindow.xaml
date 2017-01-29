@@ -32,10 +32,11 @@
         </Grid.Background>
 
         <Grid.ContextMenu>
-            <ContextMenu> 
+            <ContextMenu
+                Opened="ContextMenu_OnOpened"
+                Closed="ContextMenu_OnClosed">
                 <MenuItem Header="Restart"
-                          Command="{Binding RestartCommand, Mode=OneWay}"
-                          Click="MenuItem_OnClick"/>
+                          Command="{Binding RestartCommand, Mode=OneWay}"/>
                 <Separator />
                 <MenuItem Header="Settings"
                           Command="{Binding SettingsCommand, Mode=OneWay}"
