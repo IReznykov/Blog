@@ -35,6 +35,11 @@ namespace WpfApplication.ViewModels
 				_rectangles.Add(new ScreenRectangle(ScreenNames.VirtualScreen,
 					(float) SystemParameters.VirtualScreenLeft, (float) SystemParameters.VirtualScreenTop,
 					(float) SystemParameters.VirtualScreenWidth, (float) SystemParameters.VirtualScreenHeight));
+				_rectangles.Add(new ScreenRectangle(ScreenNames.WorkingArea,
+					SystemParameters.WorkArea.Width, SystemParameters.WorkArea.Height));
+				_rectangles.Add(new ScreenRectangle(ScreenNames.PrimaryWorkingArea,
+					Screen.PrimaryScreen.WorkingArea.Left, Screen.PrimaryScreen.WorkingArea.Top,
+					Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height));
 			}
 
 			foreach (var screeen in Screen.AllScreens)
