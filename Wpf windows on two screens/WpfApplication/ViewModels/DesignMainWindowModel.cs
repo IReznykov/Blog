@@ -13,7 +13,7 @@ namespace WpfApplication.ViewModels
 		{
 			Rectangles = new ObservableCollection<ScreenRectangle>(new []
 			{
-				new ScreenRectangle("primary", 0, 0, 300, 200),
+				new ScreenRectangle("primary", 0, 0, 300, 200, "Primary screen"),
 				new ScreenRectangle("secondary", 300, 0, 600, 400)
 			});
 		}

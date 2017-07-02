@@ -54,23 +54,46 @@
 
             <ListView
                 Grid.Column="1" Grid.Row="1"
-                ItemsSource="{Binding Rectangles}">
+                ItemsSource="{Binding Rectangles}"
+                x:Name="BoundsListView">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <Setter Property="BorderBrush" Value="LightGray" />
+                        <Setter Property="BorderThickness" Value="0,0,0,1" />
+                    </Style>
+                </ListView.ItemContainerStyle>
                 <ListView.Resources>
                     <Style TargetType="{x:Type GridViewColumnHeader}">
                     </Style>
                 </ListView.Resources>
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="Name"
-                                    DisplayMemberBinding="{Binding Name}" />
-                        <GridViewColumn Header="Left"
-                                    DisplayMemberBinding="{Binding Path=Bounds.Left, StringFormat=F2}" />
-                        <GridViewColumn Header="Top"
-                                    DisplayMemberBinding="{Binding Path=Bounds.Top, StringFormat=F2}" />
-                        <GridViewColumn Header="Width"
-                                    DisplayMemberBinding="{Binding Path=Bounds.Width, StringFormat=F2}" />
-                        <GridViewColumn Header="Height"
-                                    DisplayMemberBinding="{Binding Path=Bounds.Height, StringFormat=F2}" />
+                        <GridViewColumn
+                            Header="Name"
+                            DisplayMemberBinding="{Binding Name}" />
+                        <GridViewColumn
+                            Header="Left"
+                            DisplayMemberBinding="{Binding Path=Bounds.Left, StringFormat=F2}" />
+                        <GridViewColumn
+                            Header="Top"
+                            DisplayMemberBinding="{Binding Path=Bounds.Top, StringFormat=F2}" />
+                        <GridViewColumn
+                            Header="Width"
+                            DisplayMemberBinding="{Binding Path=Bounds.Width, StringFormat=F2}" />
+                        <GridViewColumn
+                            Header="Height"
+                            DisplayMemberBinding="{Binding Path=Bounds.Height, StringFormat=F2}" />
+                        <GridViewColumn
+                            Header="Comment"
+                            Width="300">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        TextWrapping="Wrap"
+                                        Text="{Binding Path=Description}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                     </GridView>
 
                 </ListView.View>

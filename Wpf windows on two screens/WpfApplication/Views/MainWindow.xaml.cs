@@ -11,6 +11,11 @@ namespace WpfApplication.Views
 		public MainWindow(IMainWindowModel viewModel)
 		{
 			DataContext = viewModel;
+			Loaded += (sender, args) =>
+			{
+				BoundsListView.SelectedIndex = 0;
+				BoundsListView.Focus();
+			};
 			InitializeComponent();
 		}
 	}

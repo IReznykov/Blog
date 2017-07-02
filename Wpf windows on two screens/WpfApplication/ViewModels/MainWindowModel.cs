@@ -24,19 +24,19 @@ namespace WpfApplication.ViewModels
 
 			_rectangles = new ObservableCollection<ScreenRectangle>(new[]
 			{
-				new ScreenRectangle(ScreenNames.View, ViewWidth, ViewHeight)
+				new ScreenRectangle(ScreenNames.View, ViewWidth, ViewHeight, "View uses border with BorderThickness='3', and its size is lesser than screen size at 6px at each dimension")
 			});
 			if( primary)
 			{
 				_rectangles.Add(new ScreenRectangle(ScreenNames.PrimaryScreen,
-					(float)SystemParameters.PrimaryScreenWidth, (float)SystemParameters.PrimaryScreenHeight));
+					(float)SystemParameters.PrimaryScreenWidth, (float)SystemParameters.PrimaryScreenHeight, "'Emulated' screen dimensions for Wpf applications"));
 				_rectangles.Add(new ScreenRectangle(ScreenNames.FullPrimaryScreen,
-					(float) SystemParameters.FullPrimaryScreenWidth, (float) SystemParameters.FullPrimaryScreenHeight));
+					(float) SystemParameters.FullPrimaryScreenWidth, (float) SystemParameters.FullPrimaryScreenHeight, "Height difference with working area height depends on locale"));
 				_rectangles.Add(new ScreenRectangle(ScreenNames.VirtualScreen,
 					(float) SystemParameters.VirtualScreenLeft, (float) SystemParameters.VirtualScreenTop,
 					(float) SystemParameters.VirtualScreenWidth, (float) SystemParameters.VirtualScreenHeight));
 				_rectangles.Add(new ScreenRectangle(ScreenNames.WorkingArea,
-					SystemParameters.WorkArea.Width, SystemParameters.WorkArea.Height));
+					SystemParameters.WorkArea.Width, SystemParameters.WorkArea.Height, "40px is holded for the taskbar height"));
 				_rectangles.Add(new ScreenRectangle(ScreenNames.PrimaryWorkingArea,
 					Screen.PrimaryScreen.WorkingArea.Left, Screen.PrimaryScreen.WorkingArea.Top,
 					Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height));
@@ -46,7 +46,7 @@ namespace WpfApplication.ViewModels
 			{
 				if (!primary && !Equals(screeen.DeviceName, displayName))
 					continue;
-				_rectangles.Add(new ScreenRectangle($"Screen \"{screeen.DeviceName}\"", screeen.WorkingArea));
+				_rectangles.Add(new ScreenRectangle($"Screen \"{screeen.DeviceName}\"", screeen.WorkingArea, "Physical dimensions"));
 			}
 		}
 

@@ -16,31 +16,39 @@ namespace WpfApplication.Models
 			Bounds = new RectangleF();
 		}
 
-		public ScreenRectangle(string name, RectangleF bounds)
+		public ScreenRectangle(string name, RectangleF bounds, string description = null)
 		{
 			Name = name;
 			Bounds = bounds;
+			Description = description;
 		}
 
-		public ScreenRectangle(string name, double left, double top, double width, double height)
-			: this(name, new RectangleF((float)left, (float)top, (float)width, (float)height))
+		public ScreenRectangle(string name, double left, double top, double width, double height, string description = null)
+			: this(name, new RectangleF((float)left, (float)top, (float)width, (float)height), description)
 		{
 		}
 
-		public ScreenRectangle(string name, double width, double height)
-			: this(name, new RectangleF(0, 0, (float)width, (float)height))
+		public ScreenRectangle(string name, double width, double height, string description = null)
+			: this(name, new RectangleF(0, 0, (float)width, (float)height), description)
 		{
 		}
 
 		#region Public properties
 
 		private string _name;
+		private string _description;
 		private RectangleF _bounds;
 
 		public string Name
 		{
 			get { return _name; }
 			set { SetProperty(ref _name, value); }
+		}
+
+		public string Description
+		{
+			get { return _description; }
+			set { SetProperty(ref _description, value); }
 		}
 
 		public RectangleF Bounds
