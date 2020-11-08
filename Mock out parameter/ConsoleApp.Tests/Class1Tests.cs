@@ -4,8 +4,8 @@ using Xunit;
 
 namespace ConsoleApp.Tests
 {
-    public class Class1Tests
-    {
+	public class Class1Tests
+	{
 		[Theory]
 		[InlineData(null)]
 		[InlineData("short")]
@@ -30,29 +30,29 @@ namespace ConsoleApp.Tests
 			service.Verify();
 		}
 
-	    [Theory]
-	    [InlineData(null)]
-	    [InlineData("short")]
-	    [InlineData("\t\t\ttabbed\t\t")]
-	    [InlineData("long long value")]
-	    public void Class1_Return_TheSameValueWithoutCallback(string inputValue)
-	    {
-		    var expectedValue = $"Output {inputValue}";
-		    var service = new Mock<IService>();
-		    service
-			    .Setup(mock => mock.ProcessValue(It.IsAny<string>(), out expectedValue))
-			    .Verifiable();
+		[Theory]
+		[InlineData(null)]
+		[InlineData("short")]
+		[InlineData("\t\t\ttabbed\t\t")]
+		[InlineData("long long value")]
+		public void Class1_Return_TheSameValueWithoutCallback(string inputValue)
+		{
+			var expectedValue = $"Output {inputValue}";
+			var service = new Mock<IService>();
+			service
+				.Setup(mock => mock.ProcessValue(It.IsAny<string>(), out expectedValue))
+				.Verifiable();
 
-		    // tested routine
-		    var class1 = new Class1(service.Object);
-		    var actualValue = class1.ProcessValue(inputValue);
+			// tested routine
+			var class1 = new Class1(service.Object);
+			var actualValue = class1.ProcessValue(inputValue);
 
-		    // assertion
-		    actualValue.Should().NotBeNull();
-		    actualValue.Should().Be(expectedValue);
+			// assertion
+			actualValue.Should().NotBeNull();
+			actualValue.Should().Be(expectedValue);
 
-		    service.Verify();
-	    }
+			service.Verify();
+		}
 
 		private delegate void ServiceProcessValue(string inputValue, out string outputValue);
 
