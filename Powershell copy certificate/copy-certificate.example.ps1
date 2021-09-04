@@ -1,6 +1,6 @@
 $CertificateName = 'ASP.NET Core HTTPS development certificate';
 
-.\trust-certificate.ps1 `
+.\copy-certificate.ps1 `
     $CertificateName `
     -SourceStoreLocation 'CurrentUser' `
     -SourceStoreName 'My' `
