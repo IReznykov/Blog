@@ -1,0 +1,280 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CloudFormation template defines Web ACL resources",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Resources"
+          },
+          "Parameters": [
+            "albARN"
+          ]
+        },
+        {
+          "Label": {
+            "default": "Names"
+          },
+          "Parameters": [
+            "tagName",
+            "tagNamePrefix"
+          ]
+        }
+      ],
+      "ParameterLabels": {
+        "albARN": {
+          "default": "ALB ARN"
+        },
+        "tagName": {
+          "default": "Name Tag"
+        },
+        "tagNamePrefix": {
+          "default": "Name Prefix"
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "albARN": {
+      "Description": "ARN for the Application Load Balancer",
+      "Type": "String",
+      "MinLength": "30",
+      "MaxLength": "180",
+      "Default": "arn:aws:elasticloadbalancing:us-west-1:123456789012:loadbalancer/app/load-balancer-EXAMPLE/0123456789abcdef",
+      "AllowedPattern": "^arn:(aws[a-zA-Z-]*)?:elasticloadbalancing:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\\d{1}:\\d{12}:loadbalancer/app/([a-zA-Z0-9-/]{5,100})$",
+      "ConstraintDescription": "must be a valid ARN of Application Load Balancer."
+    },
+    "tagName": {
+      "Type": "String",
+      "Description": "Name tag value",
+      "MinLength": "5",
+      "MaxLength": "25",
+      "Default": "Default"
+    },
+    "tagNamePrefix": {
+      "Description": "The prefix for use in Name tag values",
+      "Type": "String",
+      "MinLength": "5",
+      "MaxLength": "25",
+      "Default": "default"
+    }
+  },
+  "Resources": {
+    "webAcl": {
+      "Type": "AWS::WAFv2::WebACL",
+      "Properties": {
+        "Description": "Web ACL for Application Load Balancer of Elastic Beanstalk",
+        "Name": {
+          "Fn::Sub": "${tagNamePrefix}-web-owasp"
+        },
+        "DefaultAction": {
+          "Allow": {}
+        },
+        "Rules": [
+          {
+            "Name": "AWS-CRS",
+            "Priority": 0,
+            "Statement": {
+              "ManagedRuleGroupStatement": {
+                "VendorName": "AWS",
+                "Name": "AWSManagedRulesCommonRuleSet",
+                "ExcludedRules": []
+              }
+            },
+            "OverrideAction": {
+              "None": {}
+            },
+            "VisibilityConfig": {
+              "SampledRequestsEnabled": true,
+              "CloudWatchMetricsEnabled": true,
+              "MetricName": {
+                "Fn::Sub": "${tagNamePrefix}-aws-crs-metric"
+              }
+            }
+          },
+          {
+            "Name": "Bad-Inputs",
+            "Priority": 1,
+            "Statement": {
+              "ManagedRuleGroupStatement": {
+                "VendorName": "AWS",
+                "Name": "AWSManagedRulesKnownBadInputsRuleSet",
+                "ExcludedRules": []
+              }
+            },
+            "OverrideAction": {
+              "None": {}
+            },
+            "VisibilityConfig": {
+              "SampledRequestsEnabled": true,
+              "CloudWatchMetricsEnabled": true,
+              "MetricName": {
+                "Fn::Sub": "${tagNamePrefix}-bad-inputs-metric"
+              }
+            }
+          },
+          {
+            "Name": "Anonymous-IpList",
+            "Priority": 2,
+            "Statement": {
+              "ManagedRuleGroupStatement": {
+                "VendorName": "AWS",
+                "Name": "AWSManagedRulesAnonymousIpList",
+                "ExcludedRules": []
+              }
+            },
+            "OverrideAction": {
+              "None": {}
+            },
+            "VisibilityConfig": {
+              "SampledRequestsEnabled": true,
+              "CloudWatchMetricsEnabled": true,
+              "MetricName": {
+                "Fn::Sub": "${tagNamePrefix}-anonymous-iplist-metric"
+              }
+            }
+          },
+          {
+            "Name": "Windows-RuleSet",
+            "Priority": 3,
+            "Statement": {
+              "ManagedRuleGroupStatement": {
+                "VendorName": "AWS",
+                "Name": "AWSManagedRulesWindowsRuleSet"
+              }
+            },
+            "OverrideAction": {
+              "None": {}
+            },
+            "VisibilityConfig": {
+              "SampledRequestsEnabled": true,
+              "CloudWatchMetricsEnabled": true,
+              "MetricName": {
+                "Fn::Sub": "${tagNamePrefix}-windows-ruleset-metric"
+              }
+            }
+          },
+          {
+            "Name": "SQLInject-RuleSet",
+            "Priority": 4,
+            "Statement": {
+              "ManagedRuleGroupStatement": {
+                "VendorName": "AWS",
+                "Name": "AWSManagedRulesSQLiRuleSet"
+              }
+            },
+            "OverrideAction": {
+              "None": {}
+            },
+            "VisibilityConfig": {
+              "SampledRequestsEnabled": true,
+              "CloudWatchMetricsEnabled": true,
+              "MetricName": {
+                "Fn::Sub": "${tagNamePrefix}-SQLinjection-ruleset-metric"
+              }
+            }
+          }
+        ],
+        "Scope": "REGIONAL",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${tagName} OWASP Web ACL"
+            }
+          }
+        ],
+        "VisibilityConfig": {
+          "SampledRequestsEnabled": true,
+          "CloudWatchMetricsEnabled": true,
+          "MetricName": {
+            "Fn::Sub": "${tagNamePrefix}-web-owasp-metric"
+          }
+        }
+      }
+    },
+    "cloudwatchLogsGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "aws-waf-logs-${tagNamePrefix}-web-owasp"
+        },
+        "RetentionInDays": 180
+      }
+    },
+    "webAcllogging": {
+      "Type": "AWS::WAFv2::LoggingConfiguration",
+      "Properties": {
+        "ResourceArn": {
+          "Fn::GetAtt": [
+            "webAcl",
+            "Arn"
+          ]
+        },
+        "LogDestinationConfigs": [
+          {
+            "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws-waf-logs-${tagNamePrefix}-web-owasp"
+          }
+        ],
+        "LoggingFilter": {
+          "DefaultBehavior": "KEEP",
+          "Filters": [
+            {
+              "Behavior": "KEEP",
+              "Conditions": [
+                {
+                  "ActionCondition": {
+                    "Action": "BLOCK"
+                  }
+                }
+              ],
+              "Requirement": "MEETS_ANY"
+            }
+          ]
+        },
+        "RedactedFields": [
+          {
+            "SingleHeader": {
+              "Name": "password"
+            }
+          }
+        ]
+      }
+    },
+    "albWebACLAssociation": {
+      "Type": "AWS::WAFv2::WebACLAssociation",
+      "Properties": {
+        "ResourceArn": {
+          "Ref": "albARN"
+        },
+        "WebACLArn": {
+          "Fn::GetAtt": [
+            "webAcl",
+            "Arn"
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "OWASPWebAclARN": {
+      "Description": "ARN of WebACL",
+      "Value": {
+        "Fn::GetAtt": [
+          "webAcl",
+          "Arn"
+        ]
+      }
+    },
+    "CloudwatchLogsGroupARN": {
+      "Description": "ARN of CloudWatch Logs Group",
+      "Value": {
+        "Fn::GetAtt": [
+          "cloudwatchLogsGroup",
+          "Arn"
+        ]
+      }
+    }
+  }
+}
