@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31105.61
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EWSMailMessage", "EWSMailMessage\EWSMailMessage.csproj", "{FA7690E1-EE17-4BDA-8A8F-2E8A890ED49D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EWSMailMessage.Tests", "EWSMailMessage.Tests\EWSMailMessage.Tests.csproj", "{4A5ECE5E-4AA3-4FB8-A36B-AC976D7CB39C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FA7690E1-EE17-4BDA-8A8F-2E8A890ED49D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA7690E1-EE17-4BDA-8A8F-2E8A890ED49D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA7690E1-EE17-4BDA-8A8F-2E8A890ED49D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA7690E1-EE17-4BDA-8A8F-2E8A890ED49D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A5ECE5E-4AA3-4FB8-A36B-AC976D7CB39C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A5ECE5E-4AA3-4FB8-A36B-AC976D7CB39C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A5ECE5E-4AA3-4FB8-A36B-AC976D7CB39C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A5ECE5E-4AA3-4FB8-A36B-AC976D7CB39C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0DC5DFFE-5626-45D2-A01C-60235A8FA71E}
+	EndGlobalSection
+EndGlobal
