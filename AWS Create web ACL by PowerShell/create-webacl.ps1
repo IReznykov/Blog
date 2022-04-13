@@ -1,9 +1,9 @@
 <#
-1. Check that any web ACL exists for a resource
+1. Check does a web ACL exist for the resource
 2. Create a web ACL
 3. Create a log group
 4. Create a logging configuration
-5. Associate the resource and a web ACL
+5. Associate the resource and the web ACL
 
 Features:
 * Script is idempotent, it checks existent resources.
@@ -19,12 +19,16 @@ Param (
     [Parameter(Mandatory = $true, Position = 0)]
     [string]$ResourceARN,
 
-    # Tag name
+    # rules file name
     [Parameter(Mandatory = $true, Position = 1)]
+    [string]$RulesFilename,
+
+    # Tag name
+    [Parameter(Mandatory = $true, Position = 2)]
     [string]$TagName,
 
     # Tag name prefix
-    [Parameter(Mandatory = $true, Position = 2)]
+    [Parameter(Mandatory = $true, Position = 3)]
     [string]$TagNamePrefix,
 
     # AWS Region, could be set in user's credentials.
@@ -43,73 +47,51 @@ Write-Host "Script $fileName start time = $([DateTime]::Now)" -ForegroundColor B
 # ShowOutput == $true gives detailed output
 $ShowOutput = $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent;
 
+. "$(Split-Path -Path $PSCommandPath)\WAF-functions.ps1"
+
 # Actually these checks are false, as it checks by PS for mandatory parameters
 if (-not $ResourceARN) { throw "-resourcearn is required."; }
+if (-not $RulesFilename) { throw "-rulesfilename is required."; }
 if (-not $TagName) { throw "-tagname is required."; }
 if (-not $TagNamePrefix) { throw "-tagnameprefix is required."; }
 
 try {
-    $webAclName = "${tagNamePrefix}-web-owasp";
+    $webAclName = "${tagNamePrefix}-web-owasp-2";
     $logsGroupName = "aws-waf-logs-$webAclName";
 
     # check for the existent web ACL and stop the script if a web ACL exists
-    $jsonObjects = $null;
-    $strJsonObjects = $null;
-    $awsObjects = $null;
-    $existObject = $false;
-
-    $queryRequest = "WebACLs[?Name==``$webAclName``]";
-    $jsonObjects = aws --output json --profile $AwsProfile --region $RegionName --color on `
-        wafv2 list-web-acls `
-        --scope REGIONAL `
-        --query $queryRequest;
-    
+    $webAclARN = Get-WAF-WebAclARN `
+        $webAclName `
+        -regionname $RegionName -awsprofile $AwsProfile `
+        -verbose:$ShowOutput;
     if (-not $?) {
-        Write-Host "Listing web ACLs failed" -ForegroundColor Red;
+        Write-Host "Getting web ACL failed" -ForegroundColor Red;
         return $false;
     }
-    else {
-        if ($jsonObjects) {
-            $strJsonObjects = [string]$jsonObjects;
-            $awsObjects = ConvertFrom-Json -InputObject $strJsonObjects;
-            $existObject = ($awsObjects.Count -gt 0);
-        }
-        if ($existObject) {
-            Write-Host "Web ACL '$webAclName' already exists, script is stopped";
-            return $true;
-        }
+    if ($webAclARN) {
+        Write-Host "Web ACL '$webAclName' already exists, script is stopped";
+        return $true;
     }
-    Write-Verbose "Web ACL '$webAclName' doesn't exist";
+    # Write-Verbose "Web ACL '$webAclName' doesn't exist";
 
     # check the resource for the associated web ACL. also if ResourceARN is wrong, the script is stopped
-    $jsonObjects = $null;
-    $strJsonObjects = $null;
-    $awsObjects = $null;
-    $existObject = $false;
-
-    $jsonObjects = aws --output json --profile $AwsProfile --region $RegionName --color on `
-        wafv2 get-web-acl-for-resource `
-        --resource-arn $ResourceARN;
+    $webAclARN = Get-WAF-WebAclForResource `
+        $ResourceARN `
+        -regionname $RegionName -awsprofile $AwsProfile `
+        -verbose:$ShowOutput;
     
     if (-not $?) {
         Write-Host "Getting web ACL associated with the resource failed" -ForegroundColor Red;
         return $false;
     }
-    else {
-        if ($jsonObjects) {
-            $strJsonObjects = [string]$jsonObjects;
-            $awsObjects = ConvertFrom-Json -InputObject $strJsonObjects;
-            $existObject = ($awsObjects.Count -gt 0);
-        }
-        if ($existObject) {
-            Write-Host "Web ACL for the resource is already associated, script is stopped";
-            return $true;
-        }
+    if ($webAclARN) {
+        Write-Host "Web ACL for the resource is already associated, script is stopped";
+        return $true;
     }
-    Write-Verbose "The resource doesn't have associated web ACL";
+    # Write-Verbose "The resource doesn't have associated web ACL";
 
     # create web ACL with predefined set of rule sets
-    $rulesFilePath = "$(Split-Path -Path $PSCommandPath -Parent)\waf-rules.json";
+    $rulesFilePath = "$(Split-Path -Path $PSCommandPath -Parent)\$($RulesFilename)";
     Write-Verbose "Rules file path: '$rulesFilePath'";
     if (-not(Test-Path -Path $rulesFilePath -PathType Leaf)) {
         Write-Host "File with rules for a web ACL is not found";
@@ -136,20 +118,18 @@ try {
         Write-Host "Creating web ACL failed" -ForegroundColor Red;
         return $false;
     }
+    if ($jsonObjects) {
+        $strJsonObjects = [string]$jsonObjects;
+        $awsObjects = ConvertFrom-Json -InputObject $strJsonObjects;
+        $existObject = ($awsObjects.Count -gt 0);
+    }
+    if ($existObject) {
+        $webAclARN = $awsObjects.Summary.ARN;
+        $webAclId = $awsObjects.Summary.Id;
+    }
     else {
-        if ($jsonObjects) {
-            $strJsonObjects = [string]$jsonObjects;
-            $awsObjects = ConvertFrom-Json -InputObject $strJsonObjects;
-            $existObject = ($awsObjects.Count -gt 0);
-        }
-        if ($existObject) {
-            $webAclARN = $awsObjects.Summary.ARN;
-            $webAclId = $awsObjects.Summary.Id;
-        }
-        else {
-            Write-Host "Creating a web ACL '$webAclName' failed" -ForegroundColor Red;
-            return $false;
-        }
+        Write-Host "Creating a web ACL '$webAclName' failed" -ForegroundColor Red;
+        return $false;
     }
     Write-Host "Web ACL is created succesfully, Id=$webAclId, ARN=$webAclARN";
 
