@@ -34,7 +34,7 @@ Function Get-WebAclARN {
     #endregion
 
     #region List web ACLs with the provided name
-    $queryRequest = "WebACLs[?Name==``$webAclName``]";
+    $queryRequest = "WebACLs[?Name==``$WebAclName``]";
     $jsonObjects = aws --output json --profile $AwsProfile --region $RegionName --color on `
         wafv2 list-web-acls `
         --scope REGIONAL `
@@ -51,11 +51,11 @@ Function Get-WebAclARN {
     }
     if ($existObject) {
         $webAclARN = $awsObjects.ARN;
-        Write-Verbose "Web ACL '$webAclName' is found, ARN=$webAclARN";
+        Write-Verbose "Web ACL '$WebAclName' is found, ARN=$webAclARN";
         return $webAclARN;
     }
     else {
-        Write-Verbose "Web ACL '$webAclName' doesn't exist";
+        Write-Verbose "Web ACL '$WebAclName' doesn't exist";
         return $null;
     }
     #endregion
@@ -101,7 +101,7 @@ Function Get-WebAclForResource {
         --resource-arn $ResourceARN;
     
     if (-not $?) {
-        Write-Verbose "Getting web ACL associated with the resource failed" -ForegroundColor Red;
+        Write-Host "Getting web ACL associated with the resource failed" -ForegroundColor Red;
         return $null;
     }
 
@@ -117,6 +117,69 @@ Function Get-WebAclForResource {
     }
     else {
         Write-Verbose "The resource doesn't have associated web ACL";
+        return $null;
+    }
+    #endregion
+}
+
+Function Get-LogGroupARN {
+    <#
+    .SYNOPSIS
+    Get-LogGroupARN Function seek log group by its name and return ARN or $null if a log group is not found.
+    .DESCRIPTION
+    Get-LogGroupARN Function seek log group by its name and return ARN or $null if a log group is not found.
+    #>
+    [CmdletBinding(DefaultParameterSetName = 'Default')]
+    Param (
+        # log group name
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Default')]
+        [ValidateNotNullOrEmpty()]
+        [string]$LogGroupName,
+
+        # region name
+        [Parameter(Mandatory = $false, Position = 1, ParameterSetName = 'Default')]
+        [ValidateNotNullOrEmpty()]
+        [string]$RegionName = "us-west-1",
+
+        # AWS profile name from User .aws config file
+        [Parameter(Mandatory = $false, Position = 2, ParameterSetName = 'Default')]
+        [ValidateNotNullOrEmpty()]
+        [string]$AwsProfile = "default"
+    )
+
+    #region Initialization
+    $functionName = $($myInvocation.MyCommand.Name);
+    Write-Host "$($functionName)(webACL=$WebAclName, region=$RegionName, profile=$AwsProfile) starts." -ForegroundColor Blue;
+
+    $jsonObjects = $null;
+    $strJsonObjects = $null;
+    $awsObjects = $null;
+    $existObject = $false;
+    #endregion
+
+    #region List log groups with the provided name
+    $queryRequest = "logGroups[?logGroupName==``$logGroupName``]";
+    $jsonObjects = aws --output json --profile $AwsProfile --region $RegionName --color on `
+        logs describe-log-groups `
+        --log-group-name-prefix $logGroupName `
+        --query $queryRequest;
+    
+    if (-not $?) {
+        Write-Host "Listing CloudWatch log groups failed" -ForegroundColor Red;
+        return $null;
+    }
+    if ($jsonObjects) {
+        $strJsonObjects = [string]$jsonObjects;
+        $awsObjects = ConvertFrom-Json -InputObject $strJsonObjects;
+        $existObject = ($awsObjects.Count -gt 0);
+    }
+    if ($existObject) {
+        $logGroupARN = $awsObjects.ARN;
+        Write-Verbose "Log group '$LogGroupName' is found, ARN=$logGroupARN";
+        return $logGroupARN;
+    }
+    else {
+        Write-Verbose "Log group '$LogGroupName' doesn't exist";
         return $null;
     }
     #endregion

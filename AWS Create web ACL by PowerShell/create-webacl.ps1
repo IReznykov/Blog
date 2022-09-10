@@ -55,7 +55,7 @@ $Verbose = $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent;
 
 try {
     $webAclName = "${tagNamePrefix}-web-owasp-2";
-    $logsGroupName = "aws-waf-logs-$webAclName";
+    $logGroupName = "aws-waf-logs-$webAclName";
 
     #region Check for the existent web ACL and stop the script if a web ACL exists
     $webAclARN = Get-WebAclARN `
@@ -137,62 +137,53 @@ try {
     #region Create or use existent log group
     $attempt = 0;
     do {
+        $logGroupARN = Get-LogGroupARN `
+            $logGroupName `
+            -regionname $RegionName -awsprofile $AwsProfile `
+            -verbose:$Verbose;
+    
+        if (-not $?) {
+            Write-Host "Getting log group failed" -ForegroundColor Red;
+            return $false;
+        }
+        if ($logGroupARN) {
+            Write-Verbose "Log group '$logGroupName' exists, let's use it";
+            break;
+        }
+
+
+
         $jsonObjects = $null;
         $strJsonObjects = $null;
         $awsObjects = $null;
         $existObject = $false;
-    
-        $queryRequest = "logGroups[?logGroupName==``$logsGroupName``]";
-        $jsonObjects = aws --output json --profile $AwsProfile --region $RegionName --color on `
-            logs describe-log-groups `
-            --log-group-name-prefix $logsGroupName `
-            --query $queryRequest;
 
+        Write-Verbose "Log group '$logGroupName' doesn't exists, let's create it";
+        # no output
+        aws --output json --profile $AwsProfile --region $RegionName --color on `
+            logs create-log-group `
+            --log-group-name $logGroupName `
+            --tags "Project=$tagNamePrefix";
+        
         if (-not $?) {
-            Write-Host "Listing CloudWatch log groups failed" -ForegroundColor Red;
+            Write-Host "Creating CloudWatch log group failed" -ForegroundColor Red;
             return $false;
         }
-        else {
-            if ($jsonObjects) {
-                $strJsonObjects = [string]$jsonObjects;
-                $awsObjects = ConvertFrom-Json -InputObject $strJsonObjects;
-                $existObject = ($awsObjects.Count -gt 0);
-            }
-            if ($existObject) {
-                Write-Verbose "Log group '$logsGroupName' exists, let's use it";
-                $logsGroupARN = $awsObjects.arn;
-                break;
-            }
-        }
 
-        if (-not $existObject) {
-            Write-Verbose "Log group '$logsGroupName' doesn't exists, let's create it";
-            # no output
-            aws --output json --profile $AwsProfile --region $RegionName --color on `
-                logs create-log-group `
-                --log-group-name $logsGroupName `
-                --tags "Project=$tagNamePrefix";
+        # no output
+        aws --output json --profile $AwsProfile --region $RegionName --color on `
+            logs put-retention-policy `
+            --log-group-name $logGroupName `
+            --retention-in-days 180;
         
-            if (-not $?) {
-                Write-Host "Creating CloudWatch log group failed" -ForegroundColor Red;
-                return $false;
-            }
-
-            # no output
-            aws --output json --profile $AwsProfile --region $RegionName --color on `
-                logs put-retention-policy `
-                --log-group-name $logsGroupName `
-                --retention-in-days 180;
-        
-            if (-not $?) {
-                Write-Host "Updating CloudWatch log group failed" -ForegroundColor Red;
-                return $false;
-            }
+        if (-not $?) {
+            Write-Host "Updating CloudWatch log group failed" -ForegroundColor Red;
+            return $false;
         }
         ++$attempt;
     } while ($attempt -lt 2);
 
-    Write-Host "CloudWatch log group with ARN=$logsGroupARN is used";
+    Write-Host "CloudWatch log group with ARN=$logGroupARN is used";
 
     # add Web ACL logging
     $jsonObjects = $null;
@@ -200,8 +191,8 @@ try {
     $awsObjects = $null;
     $existObject = $false;
 
-    if ($logsGroupARN.EndsWith(":*")) {
-        $logsGroupARN = $logsGroupARN.TrimEnd(":*");
+    if ($logGroupARN.EndsWith(":*")) {
+        $logGroupARN = $logGroupARN.TrimEnd(":*");
     }
     $queryRequest = "LoggingConfigurations[?contains(ResourceArn, ``$webAclARN``) == ``true``]";
     $jsonObjects = aws --output json --profile $AwsProfile --region $RegionName --color on `
@@ -229,7 +220,7 @@ try {
 {  
     \"ResourceArn\": \"$webAclARN\",
     \"LogDestinationConfigs\": [
-      \"$logsGroupARN\"
+      \"$logGroupARN\"
     ],
     \"RedactedFields\": [
       {
