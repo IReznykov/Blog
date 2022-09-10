@@ -10,10 +10,5 @@ $result = .\create-webacl.ps1 `
     -verbose;
 
 if ((-not $?) -or (-not $result)) {
-    Write-Host "Web ACL or related resources are not created" -ForegroundColor Red;
-    return $false;
-}
-else {
-    Write-Host "Web ACL and related resources are created sucessfully:`nweb ACL ARN=$webAclARN`nResource ARN=$ResourceARN";
-    return $true;
+    Write-Error "Web ACL or related resources are not created";
 }

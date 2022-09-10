@@ -122,12 +122,12 @@ Function Get-WebAclForResource {
     #endregion
 }
 
-Function Get-LogGroupARN {
+Function Get-CloudWatchLogGroupARN {
     <#
     .SYNOPSIS
-    Get-LogGroupARN Function seek log group by its name and return ARN or $null if a log group is not found.
+    Get-CloudWatchLogGroupARN Function seek log group by its name and return ARN or $null if a log group is not found.
     .DESCRIPTION
-    Get-LogGroupARN Function seek log group by its name and return ARN or $null if a log group is not found.
+    Get-CloudWatchLogGroupARN Function seek log group by its name and return ARN or $null if a log group is not found.
     #>
     [CmdletBinding(DefaultParameterSetName = 'Default')]
     Param (
@@ -149,7 +149,7 @@ Function Get-LogGroupARN {
 
     #region Initialization
     $functionName = $($myInvocation.MyCommand.Name);
-    Write-Host "$($functionName)(webACL=$WebAclName, region=$RegionName, profile=$AwsProfile) starts." -ForegroundColor Blue;
+    Write-Host "$($functionName)(LogGroup=$LogGroupName, region=$RegionName, profile=$AwsProfile) starts." -ForegroundColor Blue;
 
     $jsonObjects = $null;
     $strJsonObjects = $null;
@@ -182,6 +182,97 @@ Function Get-LogGroupARN {
         Write-Verbose "Log group '$LogGroupName' doesn't exist";
         return $null;
     }
+    #endregion
+}
+
+
+Function New-CloudWatchLogGroup {
+    <#
+    .SYNOPSIS
+    New-CloudWatchLogGroup Function creats CloudWatch log group.
+    .DESCRIPTION
+    New-CloudWatchLogGroup Function creats CloudWatch log group.
+    #>
+    [CmdletBinding(DefaultParameterSetName = 'Default')]
+    Param (
+        # log group name
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Default')]
+        [ValidateNotNullOrEmpty()]
+        [string]$LogGroupName,
+
+        # log retention in days
+        [Parameter(Mandatory = $false, Position = 1, ParameterSetName = 'Default')]
+        [ValidateRange(1, 360)]
+        [string]$RetentionDays = 180,
+
+        # Tag name prefix
+        [Parameter(Mandatory = $true, Position = 2, ParameterSetName = 'Default')]
+        [array]$Tags = $null,
+
+        # region name
+        [Parameter(Mandatory = $false, Position = 3, ParameterSetName = 'Default')]
+        [ValidateNotNullOrEmpty()]
+        [string]$RegionName = "us-west-1",
+
+        # AWS profile name from User .aws config file
+        [Parameter(Mandatory = $false, Position = 4, ParameterSetName = 'Default')]
+        [ValidateNotNullOrEmpty()]
+        [string]$AwsProfile = "default"
+    )
+
+    #region Initialization
+    $functionName = $($myInvocation.MyCommand.Name);
+    Write-Host "$($functionName)(LogGroup=$LogGroupName, region=$RegionName, profile=$AwsProfile) starts." -ForegroundColor Blue;
+    #endregion
+
+    #region Create CloudWatch log group
+    $logGroupARN = Get-CloudWatchLogGroupARN `
+        $logGroupName `
+        -regionname $RegionName -awsprofile $AwsProfile `
+        -verbose:$Verbose;
+
+    if (-not $?) {
+        Write-Host "Getting log group failed" -ForegroundColor Red;
+        return $null;
+    }
+    if (-not $logGroupARN) {
+        Write-Verbose "Log group '$logGroupName' doesn't exist, let's create it";
+
+        # no output
+        aws --output json --profile $AwsProfile --region $RegionName --color on `
+            logs create-log-group `
+            --log-group-name $logGroupName `
+            --tags $Tags;
+        
+        if (-not $?) {
+            Write-Host "Creating CloudWatch log group failed" -ForegroundColor Red;
+            return $null;
+        }
+    }
+    # no output
+    aws --output json --profile $AwsProfile --region $RegionName --color on `
+        logs put-retention-policy `
+        --log-group-name $logGroupName `
+        --retention-in-days $RetentionDays;
+        
+    if (-not $?) {
+        Write-Host "Updating CloudWatch log group failed" -ForegroundColor Red;
+        return $null;
+    }
+
+    $logGroupARN = Get-CloudWatchLogGroupARN `
+        $logGroupName `
+        -regionname $RegionName -awsprofile $AwsProfile `
+        -verbose:$Verbose;
+
+    if (-not $?) {
+        Write-Host "Getting log group failed" -ForegroundColor Red;
+        return $null;
+    }
+    else {
+        return $logGroupARN;
+    }
+
     #endregion
 }
 
