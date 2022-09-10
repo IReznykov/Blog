@@ -1,4 +1,4 @@
-$RegionName = "eu-west-2";
+$RegionName = "eu-west-1";
 $ResourceARN = "arn:aws:elasticloadbalancing:$($RegionName):123456789012:loadbalancer/app/load-balancer-EXAMPLE/0123456789abcdef";
  
 $result = .\create-webacl.ps1 `
@@ -18,4 +18,3 @@ else {
     return $true;
     
 }
-

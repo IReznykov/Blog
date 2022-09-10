@@ -47,7 +47,7 @@ Write-Host "Script $fileName start time = $([DateTime]::Now)" -ForegroundColor B
 # ShowOutput == $true gives detailed output
 $ShowOutput = $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent;
 
-. "$(Split-Path -Path $PSCommandPath)\WAF-functions.ps1"
+. "$(Split-Path -Path $PSCommandPath)\functions.ps1"
 
 # Actually these checks are false, as it checks by PS for mandatory parameters
 if (-not $ResourceARN) { throw "-resourcearn is required."; }
