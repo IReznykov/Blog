@@ -17,26 +17,32 @@ Script creates web ACL and associates it with a regional resource.
 Param (
     # Resource ARN
     [Parameter(Mandatory = $true, Position = 0)]
+    [ValidateNotNullOrEmpty()]
     [string]$ResourceARN,
 
     # rules file name
     [Parameter(Mandatory = $true, Position = 1)]
+    [ValidateNotNullOrEmpty()]
     [string]$RulesFilename,
 
     # Tag name
     [Parameter(Mandatory = $true, Position = 2)]
+    [ValidateNotNullOrEmpty()]
     [string]$TagName,
 
     # Tag name prefix
     [Parameter(Mandatory = $true, Position = 3)]
+    [ValidateNotNullOrEmpty()]
     [string]$TagNamePrefix,
 
     # AWS Region, could be set in user's credentials.
     [Parameter(Mandatory = $false)]
+    [ValidateNotNullOrEmpty()]
     [string]$RegionName = "us-west-1",
 
     # AWS profile, default value is 'default'
     [Parameter(Mandatory = $false)]
+    [ValidateNotNullOrEmpty()]
     [string]$AwsProfile = "default"
 )
 
@@ -44,26 +50,18 @@ $startDateTime = $([DateTime]::Now);
 $fileName = $(Split-Path -Path $PSCommandPath -Leaf);
 Write-Host "Script $fileName start time = $([DateTime]::Now)" -ForegroundColor Blue;
 
-# ShowOutput == $true gives detailed output
-$ShowOutput = $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent;
-
+$Verbose = $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent;
 . "$(Split-Path -Path $PSCommandPath)\functions.ps1"
-
-# Actually these checks are false, as it checks by PS for mandatory parameters
-if (-not $ResourceARN) { throw "-resourcearn is required."; }
-if (-not $RulesFilename) { throw "-rulesfilename is required."; }
-if (-not $TagName) { throw "-tagname is required."; }
-if (-not $TagNamePrefix) { throw "-tagnameprefix is required."; }
 
 try {
     $webAclName = "${tagNamePrefix}-web-owasp-2";
     $logsGroupName = "aws-waf-logs-$webAclName";
 
-    # check for the existent web ACL and stop the script if a web ACL exists
-    $webAclARN = Get-WAF-WebAclARN `
+    #region Check for the existent web ACL and stop the script if a web ACL exists
+    $webAclARN = Get-WebAclARN `
         $webAclName `
         -regionname $RegionName -awsprofile $AwsProfile `
-        -verbose:$ShowOutput;
+        -verbose:$Verbose;
     if (-not $?) {
         Write-Host "Getting web ACL failed" -ForegroundColor Red;
         return $false;
@@ -73,12 +71,13 @@ try {
         return $true;
     }
     # Write-Verbose "Web ACL '$webAclName' doesn't exist";
+    #endregion
 
-    # check the resource for the associated web ACL. also if ResourceARN is wrong, the script is stopped
-    $webAclARN = Get-WAF-WebAclForResource `
+    #region Check the resource for the associated web ACL. also if ResourceARN is wrong, the script is stopped
+    $webAclARN = Get-WebAclForResource `
         $ResourceARN `
         -regionname $RegionName -awsprofile $AwsProfile `
-        -verbose:$ShowOutput;
+        -verbose:$Verbose;
     
     if (-not $?) {
         Write-Host "Getting web ACL associated with the resource failed" -ForegroundColor Red;
@@ -89,8 +88,9 @@ try {
         return $true;
     }
     # Write-Verbose "The resource doesn't have associated web ACL";
+    #endregion
 
-    # create web ACL with predefined set of rule sets
+    #region Create web ACL with predefined set of rule sets
     $rulesFilePath = "$(Split-Path -Path $PSCommandPath -Parent)\$($RulesFilename)";
     Write-Verbose "Rules file path: '$rulesFilePath'";
     if (-not(Test-Path -Path $rulesFilePath -PathType Leaf)) {
@@ -132,8 +132,9 @@ try {
         return $false;
     }
     Write-Host "Web ACL is created succesfully, Id=$webAclId, ARN=$webAclARN";
+    #endregion
 
-    # create or use existent log group
+    #region Create or use existent log group
     $attempt = 0;
     do {
         $jsonObjects = $null;
