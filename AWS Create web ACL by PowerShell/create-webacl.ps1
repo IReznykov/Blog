@@ -1,13 +1,13 @@
 <#
 1. Check does a web ACL exist for the resource
-2. Create a web ACL
-3. Create a log group
+2. Create a log group
+3. Create a web ACL
 4. Create a logging configuration
 5. Associate the resource and the web ACL
 
 Features:
-* Script is idempotent, it checks existent resources.
-* Script returns true/false
+* Script is idempotent, it checks for the existent resources.
+* Script returns a web ACL ARN if all operations are succesfull, otherwise it returns $null.
 * Script doesn't catch exceptions
 #>
 
@@ -54,7 +54,7 @@ $Verbose = $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent;
 . "$(Split-Path -Path $PSCommandPath)\functions.ps1"
 
 try {
-    $webAclName = "${tagNamePrefix}-web-owasp-2";
+    $webAclName = "${tagNamePrefix}-web-owasp";
     $logGroupName = "aws-waf-logs-$webAclName";
 
     #region Check for the existent web ACL and stop the script if a web ACL exists
@@ -64,11 +64,11 @@ try {
         -verbose:$Verbose;
     if (-not $?) {
         Write-Host "Getting web ACL failed" -ForegroundColor Red;
-        return $false;
+        return $null;
     }
     if ($webAclARN) {
         Write-Host "Web ACL '$webAclName' already exists, script is stopped";
-        return $true;
+        return $webAclARN;
     }
     # Write-Verbose "Web ACL '$webAclName' doesn't exist";
     #endregion
@@ -81,13 +81,29 @@ try {
     
     if (-not $?) {
         Write-Host "Getting web ACL associated with the resource failed" -ForegroundColor Red;
-        return $false;
+        return $null;
     }
     if ($webAclARN) {
         Write-Host "Web ACL for the resource is already associated, script is stopped";
-        return $true;
+        return $webAclARN;
     }
     # Write-Verbose "The resource doesn't have associated web ACL";
+    #endregion
+
+    #region Create or use existent log group
+    $logGroupTags = @( "Project=$tagNamePrefix" );
+    $logGroupARN = New-LogGroup `
+        $logGroupName `
+        -retentiondays 180 `
+        -tags $logGroupTags `
+        -regionname $RegionName -awsprofile $AwsProfile `
+        -verbose:$Verbose;
+    
+    if ((-not $?) -or (-not $logGroupARN)) {
+        Write-Host "Getting log group '$logsGroupName' failed" -ForegroundColor Red;
+        return $null;
+    }
+    Write-Host "Log group '$logGroupName' is found, ARN=$logGroupARN";
     #endregion
 
     #region Create web ACL with predefined set of rule sets
@@ -95,7 +111,7 @@ try {
     Write-Verbose "Rules file path: '$rulesFilePath'";
     if (-not(Test-Path -Path $rulesFilePath -PathType Leaf)) {
         Write-Host "File with rules for a web ACL is not found";
-        return $false;
+        return $null;
     }
     $rulesContent = (Get-Content $rulesFilePath -Raw) | `
         ForEach-Object { $_.replace('$tagNamePrefix', $tagNamePrefix).replace('"', '""') };
@@ -116,7 +132,7 @@ try {
         --tags "Key=Name,Value=$tagName OWASP Web ACL" "Key=Project,Value=$tagNamePrefix";
     if (-not $?) {
         Write-Host "Creating web ACL failed" -ForegroundColor Red;
-        return $false;
+        return $null;
     }
     if ($jsonObjects) {
         $strJsonObjects = [string]$jsonObjects;
@@ -129,25 +145,9 @@ try {
     }
     else {
         Write-Host "Creating a web ACL '$webAclName' failed" -ForegroundColor Red;
-        return $false;
+        return $null;
     }
     Write-Host "Web ACL is created succesfully, Id=$webAclId, ARN=$webAclARN";
-    #endregion
-
-    #region Create or use existent log group
-    $logGroupTags = @( "Project=$tagNamePrefix" );
-    $logGroupARN = New-CloudWatchLogGroupARN `
-        -CloudWatchLogGroupname $logGroupName `
-        -retentionindays 180 `
-        -tags $logGroupTags `
-        -regionname $RegionName -awsprofile $AwsProfile `
-        -verbose:$Verbose;
-    
-    if ((-not $?) -or (-not $logGroupARN)) {
-        Write-Host "Getting log group failed" -ForegroundColor Red;
-        return $false;
-    }
-    Write-Host "Log group '$logGroupName' is found, ARN=$logGroupARN";
     #endregion
 
     #region Add Web ACL logging
@@ -167,13 +167,13 @@ try {
     
     if (-not $?) {
         Write-Host "Getting logging configurations for web ACLs failed" -ForegroundColor Red;
-        return $false;
+        return $null;
     }
     else {
         if ($jsonObjects) {
             $strJsonObjects = [string]$jsonObjects;
-            $loggingConfigurations = ConvertFrom-Json -InputObject $strJsonObjects;
-            $existObject = ($loggingConfigurations.Count -gt 0);
+            $awsObjects = ConvertFrom-Json -InputObject $strJsonObjects;
+            $existObject = ($awsObjects.Count -gt 0);
         }
         if ($existObject) {
             Write-Verbose "Web ACL '$webAclARN' already has logging configuration";
@@ -218,7 +218,7 @@ try {
             --logging-configuration $configuration;
         if (-not $?) {
             Write-Host "Creating a web ACL logging configuration failed" -ForegroundColor Red;
-            return $false;
+            return $null;
         }
         else {
             Write-Verbose "Logging configuration to Web ACL '$webAclARN' is added";
@@ -235,13 +235,13 @@ try {
         --resource-arn $ResourceARN;
     if (-not $?) {
         Write-Host "Web ACL association is not created" -ForegroundColor Red;
-        return $false;
+        return $null;
     }        
 
     Write-Host "Web ACL is created and is associated with the resource:`nweb ACL ARN=$webAclARN`nResource ARN=$ResourceARN";
     #endregion
 
-    return $true;
+    return $webAclARN;
 }
 finally {
     $scriptDuration = [DateTime]::Now - $startDateTime;

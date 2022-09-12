@@ -13,12 +13,12 @@ Function Get-WebAclARN {
         [string]$WebAclName,
 
         # region name
-        [Parameter(Mandatory = $false, Position = 1, ParameterSetName = 'Default')]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string]$RegionName = "us-west-1",
 
         # AWS profile name from User .aws config file
-        [Parameter(Mandatory = $false, Position = 2, ParameterSetName = 'Default')]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string]$AwsProfile = "default"
     )
@@ -76,15 +76,16 @@ Function Get-WebAclForResource {
         [string]$ResourceARN,
 
         # region name
-        [Parameter(Mandatory = $false, Position = 1, ParameterSetName = 'Default')]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string]$RegionName = "us-west-1",
 
         # AWS profile name from User .aws config file
-        [Parameter(Mandatory = $false, Position = 2, ParameterSetName = 'Default')]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string]$AwsProfile = "default"
     )
+    
     #region Initialization
     $functionName = $($myInvocation.MyCommand.Name);
     Write-Host "$($functionName)(Resource=$ResourceARN, region=$RegionName, profile=$AwsProfile) starts." -ForegroundColor Blue;
@@ -101,7 +102,7 @@ Function Get-WebAclForResource {
         --resource-arn $ResourceARN;
     
     if (-not $?) {
-        Write-Host "Getting web ACL associated with the resource failed" -ForegroundColor Red;
+        Write-Host "Getting web ACL associated with the resource failed, check the Resource ARN" -ForegroundColor Red;
         return $null;
     }
 
@@ -122,12 +123,12 @@ Function Get-WebAclForResource {
     #endregion
 }
 
-Function Get-CloudWatchLogGroupARN {
+Function Get-LogGroupARN {
     <#
     .SYNOPSIS
-    Get-CloudWatchLogGroupARN Function seek log group by its name and return ARN or $null if a log group is not found.
+    Get-LogGroupARN Function seek log group by its name and return ARN or $null if a log group is not found.
     .DESCRIPTION
-    Get-CloudWatchLogGroupARN Function seek log group by its name and return ARN or $null if a log group is not found.
+    Get-LogGroupARN Function seek log group by its name and return ARN or $null if a log group is not found.
     #>
     [CmdletBinding(DefaultParameterSetName = 'Default')]
     Param (
@@ -137,12 +138,12 @@ Function Get-CloudWatchLogGroupARN {
         [string]$LogGroupName,
 
         # region name
-        [Parameter(Mandatory = $false, Position = 1, ParameterSetName = 'Default')]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string]$RegionName = "us-west-1",
 
         # AWS profile name from User .aws config file
-        [Parameter(Mandatory = $false, Position = 2, ParameterSetName = 'Default')]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string]$AwsProfile = "default"
     )
@@ -185,13 +186,12 @@ Function Get-CloudWatchLogGroupARN {
     #endregion
 }
 
-
-Function New-CloudWatchLogGroup {
+Function New-LogGroup {
     <#
     .SYNOPSIS
-    New-CloudWatchLogGroup Function creats CloudWatch log group.
+    New-LogGroup Function creats CloudWatch log group.
     .DESCRIPTION
-    New-CloudWatchLogGroup Function creats CloudWatch log group.
+    New-LogGroup Function creats CloudWatch log group.
     #>
     [CmdletBinding(DefaultParameterSetName = 'Default')]
     Param (
@@ -206,16 +206,16 @@ Function New-CloudWatchLogGroup {
         [string]$RetentionDays = 180,
 
         # Tag name prefix
-        [Parameter(Mandatory = $true, Position = 2, ParameterSetName = 'Default')]
+        [Parameter(Mandatory = $false, Position = 2, ParameterSetName = 'Default')]
         [array]$Tags = $null,
 
         # region name
-        [Parameter(Mandatory = $false, Position = 3, ParameterSetName = 'Default')]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string]$RegionName = "us-west-1",
 
         # AWS profile name from User .aws config file
-        [Parameter(Mandatory = $false, Position = 4, ParameterSetName = 'Default')]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string]$AwsProfile = "default"
     )
@@ -226,7 +226,7 @@ Function New-CloudWatchLogGroup {
     #endregion
 
     #region Create CloudWatch log group
-    $logGroupARN = Get-CloudWatchLogGroupARN `
+    $logGroupARN = Get-LogGroupARN `
         $logGroupName `
         -regionname $RegionName -awsprofile $AwsProfile `
         -verbose:$Verbose;
@@ -260,7 +260,7 @@ Function New-CloudWatchLogGroup {
         return $null;
     }
 
-    $logGroupARN = Get-CloudWatchLogGroupARN `
+    $logGroupARN = Get-LogGroupARN `
         $logGroupName `
         -regionname $RegionName -awsprofile $AwsProfile `
         -verbose:$Verbose;
