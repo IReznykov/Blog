@@ -1,0 +1,95 @@
+[
+  {
+    "Name": "AWS-CRS",
+    "Priority": 0,
+    "Statement": {
+      "ManagedRuleGroupStatement": {
+        "VendorName": "AWS",
+        "Name": "AWSManagedRulesCommonRuleSet",
+        "ExcludedRules": []
+      }
+    },
+    "OverrideAction": {
+      "None": {}
+    },
+    "VisibilityConfig": {
+      "SampledRequestsEnabled": true,
+      "CloudWatchMetricsEnabled": true,
+      "MetricName": "$tagNamePrefix-aws-crs-metric"
+    }
+  },
+  {
+    "Name": "Bad-Inputs",
+    "Priority": 1,
+    "Statement": {
+      "ManagedRuleGroupStatement": {
+        "VendorName": "AWS",
+        "Name": "AWSManagedRulesKnownBadInputsRuleSet",
+        "ExcludedRules": []
+      }
+    },
+    "OverrideAction": {
+      "None": {}
+    },
+    "VisibilityConfig": {
+      "SampledRequestsEnabled": true,
+      "CloudWatchMetricsEnabled": true,
+      "MetricName": "$tagNamePrefix-bad-inputs-metric"
+    }
+  },
+  {
+    "Name": "Anonymous-IpList",
+    "Priority": 2,
+    "Statement": {
+      "ManagedRuleGroupStatement": {
+        "VendorName": "AWS",
+        "Name": "AWSManagedRulesAnonymousIpList",
+        "ExcludedRules": []
+      }
+    },
+    "OverrideAction": {
+      "None": {}
+    },
+    "VisibilityConfig": {
+      "SampledRequestsEnabled": true,
+      "CloudWatchMetricsEnabled": true,
+      "MetricName": "$tagNamePrefix-anonymous-iplist-metric"
+    }
+  },
+  {
+    "Name": "Windows-RuleSet",
+    "Priority": 3,
+    "Statement": {
+      "ManagedRuleGroupStatement": {
+        "VendorName": "AWS",
+        "Name": "AWSManagedRulesWindowsRuleSet"
+      }
+    },
+    "OverrideAction": {
+      "None": {}
+    },
+    "VisibilityConfig": {
+      "SampledRequestsEnabled": true,
+      "CloudWatchMetricsEnabled": true,
+      "MetricName": "$tagNamePrefix-windows-ruleset-metric"
+    }
+  },
+  {
+    "Name": "SQLInject-RuleSet",
+    "Priority": 4,
+    "Statement": {
+      "ManagedRuleGroupStatement": {
+        "VendorName": "AWS",
+        "Name": "AWSManagedRulesSQLiRuleSet"
+      }
+    },
+    "OverrideAction": {
+      "None": {}
+    },
+    "VisibilityConfig": {
+      "SampledRequestsEnabled": true,
+      "CloudWatchMetricsEnabled": true,
+      "MetricName": "$tagNamePrefix-SQLinjection-ruleset-metric"
+    }
+  }
+]
