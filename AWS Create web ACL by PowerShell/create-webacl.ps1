@@ -8,29 +8,25 @@
 Features:
 * Script is idempotent, it checks for the existent resources.
 * Script returns a web ACL ARN if all operations are succesfull, otherwise it returns $null.
-* Script doesn't catch exceptions
-#>
-
-<#
-Script creates web ACL and associates it with a regional resource.
+* Script doesn't catch exceptions.
 #>
 Param (
-    # Resource ARN
+    # resource ARN
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [string]$ResourceARN,
 
-    # rules file name
+    # rule sets file name
     [Parameter(Mandatory = $true, Position = 1)]
     [ValidateNotNullOrEmpty()]
     [string]$RulesFilename,
 
-    # Tag name
+    # tag name
     [Parameter(Mandatory = $true, Position = 2)]
     [ValidateNotNullOrEmpty()]
     [string]$TagName,
 
-    # Tag name prefix
+    # tag name prefix
     [Parameter(Mandatory = $true, Position = 3)]
     [ValidateNotNullOrEmpty()]
     [string]$TagNamePrefix,
@@ -54,11 +50,11 @@ $Verbose = $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent;
 . "$(Split-Path -Path $PSCommandPath)\functions.ps1"
 
 try {
-    $webAclName = "${tagNamePrefix}-web-owasp";
+    $webAclName = "${tagNamePrefix}-web-owasp-2";
     $logGroupName = "aws-waf-logs-$webAclName";
 
     #region Check for the existent web ACL and stop the script if a web ACL exists
-    $webAclARN = Get-WebAclARN `
+    $webAclARN = Get-WAF2WebAclARN `
         $webAclName `
         -regionname $RegionName -awsprofile $AwsProfile `
         -verbose:$Verbose;
@@ -73,8 +69,8 @@ try {
     # Write-Verbose "Web ACL '$webAclName' doesn't exist";
     #endregion
 
-    #region Check the resource for the associated web ACL. also if ResourceARN is wrong, the script is stopped
-    $webAclARN = Get-WebAclForResource `
+    #region Check the resource for the associated web ACL.
+    $webAclARN = Get-WAF2WebAclForResource `
         $ResourceARN `
         -regionname $RegionName -awsprofile $AwsProfile `
         -verbose:$Verbose;
@@ -91,8 +87,8 @@ try {
     #endregion
 
     #region Create or use existent log group
-    $logGroupTags = @( "Project=$tagNamePrefix" );
-    $logGroupARN = New-LogGroup `
+    $logGroupTags = "Project=$tagName";
+    $logGroupARN = New-CloudWatchLogGroup `
         $logGroupName `
         -retentiondays 180 `
         -tags $logGroupTags `
@@ -129,7 +125,7 @@ try {
         --default-action "Allow={}" `
         --visibility-config "SampledRequestsEnabled=true, CloudWatchMetricsEnabled=true, MetricName=$tagNamePrefix-web-owasp-metric" `
         --rules $rulesContent `
-        --tags "Key=Name,Value=$tagName OWASP Web ACL" "Key=Project,Value=$tagNamePrefix";
+        --tags "Key=Name,Value=$tagName OWASP Web ACL" "Key=Project,Value=$tagName";
     if (-not $?) {
         Write-Host "Creating web ACL failed" -ForegroundColor Red;
         return $null;
