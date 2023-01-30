@@ -14,7 +14,7 @@ Function Get-SqlDatabaseAccessToken {
     .OUTPUTS
     Get-SqlDatabaseAccessToken returns $null or access token to Azure SQL Database service
     .EXAMPLE
-    PS> Get-WAF2WebAclARN -TenantID ad488fc7-65a6-4a23-8ea1-08ae48e4e2f1 -SubscriptionId 998419f1-5d94-4627-814a-cb2bcd6eee42
+    PS> Get-SqlDatabaseAccessToken -TenantID ad488fc7-65a6-4a23-8ea1-08ae48e4e2f1 -SubscriptionId 998419f1-5d94-4627-814a-cb2bcd6eee42
     Returns acess token to connect to Azure SQL Database service in Azure subscription '998419f1-5d94-4627-814a-cb2bcd6eee42'
     #>
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -40,7 +40,7 @@ Function Get-SqlDatabaseAccessToken {
     }
     Set-AzContext -Subscription $SubscriptionID | Out-Host;
     if (-not $?) {
-        Write-Error "Can't connect to Azure Subscription";
+        Write-Verbose "Can't connect to Azure Subscription";
         return $null;
     }
     $objectAccessToken = (Get-AzAccessToken -ResourceUrl "https://database.windows.net/");
@@ -70,9 +70,9 @@ Function Get-SqlDatabaseAccessToken2 {
     .INPUTS
     None. You cannot pipe objects to Get-SqlDatabaseAccessToken.
     .OUTPUTS
-    Get-SqlDatabaseAccessToken returns $null or access token to Azure SQL Database service
+    Get-SqlDatabaseAccessToken2 returns $null or access token to Azure SQL Database service
     .EXAMPLE
-    PS> Get-WAF2WebAclARN -TenantID ad488fc7-65a6-4a23-8ea1-08ae48e4e2f1 -SubscriptionId 998419f1-5d94-4627-814a-cb2bcd6eee42
+    PS> Get-SqlDatabaseAccessToken2 -TenantID ad488fc7-65a6-4a23-8ea1-08ae48e4e2f1 -SubscriptionId 998419f1-5d94-4627-814a-cb2bcd6eee42
     Returns acess token to connect to Azure SQL Database service in Azure subscription '998419f1-5d94-4627-814a-cb2bcd6eee42'
     #>
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -126,7 +126,7 @@ Function Get-SqlDatabaseAccessToken2 {
     }
     Set-AzContext -Subscription $SubscriptionID | Out-Host;
     if (-not $?) {
-        Write-Error "Can't connect to Azure Subscription";
+        Write-Verbose "Can't connect to Azure Subscription";
         return $null;
     }
     $objectAccessToken = (Get-AzAccessToken `
