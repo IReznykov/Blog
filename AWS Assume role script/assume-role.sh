@@ -3,7 +3,7 @@
 # Використання
 # ./assume-role.sh --profile 123456789012_iamuser --role IACRole [-duration 2]
 # або
-# ./assume-role.sh --profile credentails_iamuser --profile 123456789012 --role IACRole [-duration 2]
+# ./assume-role.sh --profile iamuser_name --account 123456789012 --role IACRole [-duration 2]
 
 set -euo pipefail
 
@@ -73,15 +73,18 @@ ROLE_ARN="arn:aws:iam::$ACCOUNT_ID:role/$ASSUME_ROLE_NAME"
 DURATION_SECONDS=$((DURATION * 3600))
 
 # Приймаємо роль, помилки виводимо користувачу
+TMP_ERR=$(mktemp)
 CREDENTIALS=$(aws sts assume-role \
     --profile "$PROFILE" \
     --role-arn "$ROLE_ARN" \
     --role-session-name "AssumeRoleSession" \
     --duration-seconds "$DURATION_SECONDS" \
-    --output json 2>/dev/null || true)
+    --output json 2>"$TMP_ERR" || true)
 
 if [[ -z "$CREDENTIALS" ]]; then
     echo "❌ Помилка при прийнятті ролі $ASSUME_ROLE_NAME в акаунті $ACCOUNT_ID"
+    cat "$TMP_ERR"   # показати
+    rm -f "$TMP_ERR" # прибрати
     exit 1
 fi
 
