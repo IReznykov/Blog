@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Використання
-# ./assume-role.sh --profile 123456789012_iamuser --role IACRole [-duration 2]
+# ./assume-role.sh --profile 123456789012_AdministratorAccess --role TargetRoleName [-duration 2]
 # або
-# ./assume-role.sh --profile iamuser_name --account 123456789012 --role IACRole [-duration 2]
+# ./assume-role.sh --profile iamuser_name --account 123456789012 --role TargetRoleName [-duration 2]
 
 set -euo pipefail
 
@@ -46,7 +46,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Профіль може мати ім'я по заамовчуванню default
+# Профіль може мати ім'я по замовчуванню default
 if [[ -z "${PROFILE:-}" ]]; then
     PROFILE="default"
 fi
@@ -83,8 +83,8 @@ CREDENTIALS=$(aws sts assume-role \
 
 if [[ -z "$CREDENTIALS" ]]; then
     echo "❌ Помилка при прийнятті ролі $ASSUME_ROLE_NAME в акаунті $ACCOUNT_ID"
-    cat "$TMP_ERR"   # показати
-    rm -f "$TMP_ERR" # прибрати
+    cat "$TMP_ERR"   # показати помилку
+    rm -f "$TMP_ERR" # видалити файл
     exit 1
 fi
 
