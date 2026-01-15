@@ -15,9 +15,9 @@ description: |-
 
   ## Input Parameters
     * **VpcId**: (Required) Id of the target VPC where to create resources.
-    * **ProjectTag**: (Optional) Value for the Project tag.
-    * **EnvironmentTag**: (Optional) Value for the Environment tag.
-    * **AutomationAssumeRole**: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
+    * **ProjectTag**: (Required) Value for the Project tag.
+    * **EnvironmentTag**: (Optional) Value for the Environment tag (default value - 'Dev').
+    * **AutomationAssumeRole**: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
 
   ## Minimum required IAM permissions
     * `ec2:DescribeVpcs`
