@@ -15,8 +15,8 @@ description: |-
 
   ## Input Parameters
     * **VpcId**: (Required) Id of the target VPC where to create resources.
-    * **ProjectTag**: (Required) Value for the Project tag.
-    * **EnvironmentTag**: (Optional) Value for the Environment tag (default value - 'Dev').
+    * **ProjectTag**: (Optional) Value for the Project tag (default value - 'blog').
+    * **EnvironmentTag**: (Optional) Value for the Environment tag (default value - 'dev').
     * **AutomationAssumeRole**: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
 
   ## Minimum required IAM permissions
@@ -43,10 +43,10 @@ parameters:
   EnvironmentTag:
     type: String
     description: (Optional) Value for the Environment tag.
-    default: sandbox
+    default: dev
   AutomationAssumeRole:
     type: AWS::IAM::Role::Arn
-    description: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
+    description: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
     allowedPattern: ^$|arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role\/?[a-zA-Z_0-9+=,.@\-_\/]+
 variables:
   NatGatewayId:

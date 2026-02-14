@@ -1,0 +1,188 @@
+schemaVersion: '0.3'
+description: |-
+  # Delete NAT Gateways
+  Runbook Delete-NATGateways deletes NAT Gateways in all subnets in the given VPC, removes routes in private route tables that use them, and releases Elastic IPs.
+
+  ## Workflow
+    1. Search for NAT Gateways in the given VPC.
+    2. Delete routes in private route tables that direct outbound traffic (0.0.0.0/0) through the NAT Gateway.
+    4. Removes NAT Gateways and wait until all it is fully deleted.
+    3. Releases allocated Elastic IP address.
+
+  ## Input Parameters
+    * **VpcId**: (Required) ID of the target VPC where to delete resources.
+    * **AutomationAssumeRole**: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
+
+  ## Minimum required IAM permissions
+    * `ec2:DescribeRouteTables`
+    * `ec2:DescribeNatGateways`
+    * `ec2:DeleteRoute`
+    * `ec2:DeleteNatGateway`
+    * `ec2:ReleaseAddress`
+assumeRole: '{{ AutomationAssumeRole }}'
+parameters:
+  VpcId:
+    type: String
+    description: (Required) ID of the target VPC where to delete resources.
+    allowedPattern: ^vpc-[a-z0-9]{8,17}$
+  AutomationAssumeRole:
+    type: AWS::IAM::Role::Arn
+    description: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
+    allowedPattern: ^$|arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role\/?[a-zA-Z_0-9+=,.@\-_\/]+
+mainSteps:
+  - description: Get all available NAT Gateways in the VPC.
+    name: DescribeNatGateways
+    action: aws:executeAwsApi
+    nextStep: CheckNatGateways
+    isEnd: false
+    onFailure: Abort
+    inputs:
+      Service: ec2
+      Api: DescribeNatGateways
+      Filters:
+        - Name: vpc-id
+          Values:
+            - '{{ VpcId }}'
+        - Name: state
+          Values:
+            - available
+    outputs:
+      - Name: NatGatewayIds
+        Selector: $.NatGateways..NatGatewayId
+        Type: StringList
+      - Name: NatGatewayId
+        Selector: $.NatGateways[0].NatGatewayId
+        Type: String
+  - name: CheckNatGateways
+    action: aws:branch
+    isEnd: true
+    inputs:
+      Choices:
+        - NextStep: ReviewLoop
+          Variable: '{{ DescribeNatGateways.NatGatewayId }}'
+          Contains: nat-
+  - name: ReviewLoop
+    action: aws:loop
+    isEnd: true
+    inputs:
+      Iterators: '{{ DescribeNatGateways.NatGatewayIds }}'
+      Steps:
+        - description: Remove routes to NAT Gateway in all route tables.
+          name: ReviewRoute
+          action: aws:executeScript
+          nextStep: CaptureElasticIP
+          isEnd: false
+          onFailure: Abort
+          inputs:
+            Runtime: python3.11
+            Handler: handler
+            Script: |-
+              import boto3
+
+              def handler(event, context):
+                  ec2 = boto3.client("ec2")
+                  vpc_id = event["VpcId"]
+                  nat_id = event["NatGatewayId"]
+
+                  print(f"Input VpcId: {vpc_id}")
+                  print(f"Input NatGatewayId: {nat_id}")
+
+                  # 1. Get route tables with routes via NAT Gateway
+                  route_tables = ec2.describe_route_tables(
+                      Filters=[
+                          {"Name": "vpc-id", "Values": [vpc_id]},
+                          {"Name": "route.nat-gateway-id", "Values": [nat_id]}
+                      ]
+                  )
+
+                  rt_ids = list({rt["RouteTableId"] for rt in route_tables.get("RouteTables", [])})
+                  if not rt_ids:
+                      return {"message": f"No route tables with NAT {nat_id} found in vpc {vpc_id}"}
+
+                  print(f"Route tables to update: {rt_ids}")
+                  results = []
+                  # 2. Remove routes
+                  for rt_id in rt_ids:
+                      try:
+                          rt = ec2.describe_route_tables(RouteTableIds=[rt_id])["RouteTables"][0]
+                          default_routes = [
+                              r for r in rt.get("Routes", [])
+                              if r.get("DestinationCidrBlock") == "0.0.0.0/0"
+                          ]
+
+                          if default_routes and default_routes[0].get("NatGatewayId") == nat_id:
+                              ec2.delete_route(
+                                  RouteTableId=rt_id,
+                                  DestinationCidrBlock="0.0.0.0/0"
+                              )
+                              msg = f"Deleted default route in {rt_id} via {nat_id}"
+                          else:
+                              msg = f"No default route via {nat_id} found in {rt_id}"
+
+                          print(msg)
+                          results.append(msg)
+
+                      except Exception as e:
+                          msg = f"Error processing route table {rt_id}: {str(e)}"
+                          print(msg)
+                          results.append(msg)
+
+                  return {"message": results}
+            InputPayload:
+              VpcId: '{{ VpcId }}'
+              NatGatewayId: '{{ ReviewLoop.CurrentIteratorValue }}'
+        - description: Capture Elastic IP allocation ID for this NAT Gateway.
+          name: CaptureElasticIP
+          action: aws:executeAwsApi
+          nextStep: DeleteNatGateway
+          isEnd: false
+          onFailure: Abort
+          inputs:
+            Service: ec2
+            Api: DescribeNatGateways
+            NatGatewayIds:
+              - '{{ ReviewLoop.CurrentIteratorValue }}'
+          outputs:
+            - Name: AllocationId
+              Selector: $.NatGateways[0].NatGatewayAddresses[0].AllocationId
+              Type: String
+            - Name: PublicIp
+              Selector: $.NatGateways[0].NatGatewayAddresses[0].PublicIp
+              Type: String
+        - description: Delete NAT Gateway.
+          name: DeleteNatGateway
+          action: aws:executeAwsApi
+          nextStep: WaitForNatGateway
+          isEnd: false
+          onFailure: Abort
+          inputs:
+            Service: ec2
+            Api: DeleteNatGateway
+            NatGatewayId: '{{ ReviewLoop.CurrentIteratorValue }}'
+          outputs:
+            - Name: NatGatewayId
+              Selector: $.NatGatewayId
+              Type: String
+        - description: Wait until NAT Gateway is deleted.
+          name: WaitForNatGateway
+          action: aws:waitForAwsResourceProperty
+          nextStep: ReleaseEIP
+          isEnd: false
+          onFailure: Continue
+          inputs:
+            Service: ec2
+            Api: DescribeNatGateways
+            PropertySelector: $.NatGateways[0].State
+            DesiredValues:
+              - deleted
+            NatGatewayIds:
+              - '{{ ReviewLoop.CurrentIteratorValue }}'
+        - description: Release the Elastic IP once NAT is deleted.
+          name: ReleaseEIP
+          action: aws:executeAwsApi
+          isEnd: true
+          onFailure: Abort
+          inputs:
+            Service: ec2
+            Api: ReleaseAddress
+            AllocationId: '{{ CaptureElasticIP.AllocationId }}'
