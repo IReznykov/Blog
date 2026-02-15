@@ -47,7 +47,7 @@ resource "aws_instance" "web" {
 ############################
 
 resource "aws_lb" "this" {
-  name               = "ssm-demo-alb"
+  name               = "ssm-demo-alb-${var.environment}"
   internal           = false
   load_balancer_type = "application"
   subnets            = module.vpc.public_subnets
@@ -70,7 +70,7 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_lb_target_group" "this" {
-  name     = "ssm-demo-tg"
+  name     = "ssm-demo-tg-${var.environment}"
   port     = 80
   protocol = "HTTP"
   vpc_id   = module.vpc.vpc_id

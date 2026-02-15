@@ -3,7 +3,7 @@
 ############################
 
 resource "aws_iam_role" "automation" {
-  name = "DemoSSMAutomationRole"
+  name = "SSMDemoAutomationRole-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -17,7 +17,12 @@ resource "aws_iam_role" "automation" {
   tags = local.tags
 }
 
-resource "aws_iam_role_policy_attachment" "automation" {
+resource "aws_iam_role_policy_attachment" "vpc_full_access" {
+  role       = aws_iam_role.automation.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonVPCFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_full_access" {
   role       = aws_iam_role.automation.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
 }
@@ -53,7 +58,7 @@ resource "aws_iam_role_policy" "automation_inline" {
 ############################
 
 resource "aws_iam_role" "ec2_ssm" {
-  name = "DemoEC2InstancesRole"
+  name = "SSMDemoEC2InstancesRole-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -75,6 +80,6 @@ resource "aws_iam_role_policy_attachment" "ec2_ssm" {
 }
 
 resource "aws_iam_instance_profile" "ec2_ssm" {
-  name = "ec2-ssm-profile"
+  name = "ssm-demo-ec2-profile-${var.environment}"
   role = aws_iam_role.ec2_ssm.name
 }

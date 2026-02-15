@@ -59,7 +59,7 @@ module "vpc" {
 ############################
 
 resource "aws_security_group" "alb" {
-  name   = "alb-sg"
+  name   = "alb-sg-${var.environment}"
   vpc_id = module.vpc.vpc_id
 
   ingress {
@@ -80,7 +80,7 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_security_group" "ec2" {
-  name   = "ec2-sg"
+  name   = "ec2-sg-${var.environment}"
   vpc_id = module.vpc.vpc_id
 
   ingress {
