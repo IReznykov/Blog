@@ -9,9 +9,9 @@ description: |-
     1. Identify all public subnets in the specified VPC.
     2. For each subnet, check if a NAT Gateway already exists.
     3. If no NAT Gateway is found, create a new NAT Gateway.
-    4. Update private route tables to direct outbound traffic
+    4. Wait until NAT Gateway is fully available.
+    5. Update private route tables to direct outbound traffic
        through the NAT Gateway in the public subnet in the same AZ.
-    5. Wait until all NAT Gateways are fully available.
 
   ## Input Parameters
     * **VpcId**: (Required) Id of the target VPC where to create resources.
@@ -77,8 +77,7 @@ mainSteps:
         Selector: $.Subnets..SubnetId
   - name: ReviewNatGatewayLoop
     action: aws:loop
-    nextStep: DescribeNatGateways_2
-    isEnd: false
+    isEnd: true
     inputs:
       Iterators: '{{ DescribePublicSubnets.SubnetIds }}'
       Steps:
@@ -139,7 +138,7 @@ mainSteps:
         - description: Create NAT Gateway in the public subnet.
           name: CreateNatGateway
           action: aws:executeAwsApi
-          nextStep: SetNatGatewayVariable_2
+          nextStep: WaitForNatGateway
           isEnd: false
           onFailure: Abort
           inputs:
@@ -158,6 +157,19 @@ mainSteps:
             - Name: NatGatewayId
               Selector: $.NatGateway.NatGatewayId
               Type: String
+        - description: Wait until NAT Gateway become available.
+          name: WaitForNatGateway
+          action: aws:waitForAwsResourceProperty
+          nextStep: SetNatGatewayVariable_2
+          isEnd: false
+          inputs:
+            Service: ec2
+            Api: DescribeNatGateways
+            PropertySelector: $.NatGateways[0].State
+            DesiredValues:
+              - available
+            NatGatewayIds:
+              - '{{ CreateNatGateway.NatGatewayId }}'
         - description: Save NAT Gateway Id.
           name: SetNatGatewayVariable_2
           action: aws:updateVariable
@@ -270,40 +282,3 @@ mainSteps:
             Value:
               - '{{ variable:NatGatewayIds }}'
               - '{{ variable:NatGatewayId }}'
-  - description: Get available NAT Gateways.
-    name: DescribeNatGateways_2
-    action: aws:executeAwsApi
-    nextStep: WaitLoop
-    isEnd: false
-    inputs:
-      Service: ec2
-      Api: DescribeNatGateways
-      Filters:
-        - Name: vpc-id
-          Values:
-            - '{{ VpcId }}'
-        - Name: nat-gateway-id
-          Values:
-            - '{{ variable:NatGatewayIds }}'
-    outputs:
-      - Name: NatGatewayIds
-        Selector: $.NatGateways..NatGatewayId
-        Type: StringList
-  - name: WaitLoop
-    action: aws:loop
-    isEnd: true
-    inputs:
-      Iterators: '{{ DescribeNatGateways_2.NatGatewayIds }}'
-      Steps:
-        - description: Wait until NAT Gateway become available.
-          name: WaitForNatGateway
-          action: aws:waitForAwsResourceProperty
-          isEnd: true
-          inputs:
-            Service: ec2
-            Api: DescribeNatGateways
-            PropertySelector: $.NatGateways[0].State
-            DesiredValues:
-              - available
-            NatGatewayIds:
-              - '{{ WaitLoop.CurrentIteratorValue }}'

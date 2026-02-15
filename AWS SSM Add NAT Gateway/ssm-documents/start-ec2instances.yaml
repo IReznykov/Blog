@@ -4,11 +4,12 @@ description: |-
   Runbook Start-EC2Instances starts all stopped EC2 instances in private subnets in the given VPC.
 
   ## Workflow
-    1. Search and collect EC2 instance Ids in private subnets in the given VPC.
-    2. If found, starts the instances and waits until they are fully running.
+    1. Describe all private subnets in the given VPC.
+    2. Search for and collect stopped EC2 instance Ids in those subnets.
+    3. If any, start the instances and wait until they become running and pass all checks.
 
   ## Input Parameters
-    * **VpcId**: (Required) ID of the target VPC where to create resources.
+    * **VpcId**: (Required) Id of the target VPC where to create resources.
     * **AutomationAssumeRole**: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
 
   ## Minimum required IAM permissions
@@ -19,7 +20,7 @@ assumeRole: '{{ AutomationAssumeRole }}'
 parameters:
   VpcId:
     type: String
-    description: (Required) ID of the target VPC where to delete resources.
+    description: (Required) Id of the target VPC where to delete resources.
     allowedPattern: ^vpc-[a-z0-9]{8,17}$
   AutomationAssumeRole:
     type: AWS::IAM::Role::Arn
@@ -28,7 +29,7 @@ parameters:
 variables:
   InstanceIds:
     type: StringList
-    description: Variable to keep EC2 instance ID
+    description: Variable to keep EC2 instance Id
 mainSteps:
   - description: Get all private subnets to search for EC2 instances.
     name: DescribePrivateSubnets

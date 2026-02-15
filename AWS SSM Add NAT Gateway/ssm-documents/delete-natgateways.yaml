@@ -10,7 +10,7 @@ description: |-
     3. Releases allocated Elastic IP address.
 
   ## Input Parameters
-    * **VpcId**: (Required) ID of the target VPC where to delete resources.
+    * **VpcId**: (Required) Id of the target VPC where to delete resources.
     * **AutomationAssumeRole**: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
 
   ## Minimum required IAM permissions
@@ -23,7 +23,7 @@ assumeRole: '{{ AutomationAssumeRole }}'
 parameters:
   VpcId:
     type: String
-    description: (Required) ID of the target VPC where to delete resources.
+    description: (Required) Id of the target VPC where to delete resources.
     allowedPattern: ^vpc-[a-z0-9]{8,17}$
   AutomationAssumeRole:
     type: AWS::IAM::Role::Arn
@@ -131,7 +131,7 @@ mainSteps:
             InputPayload:
               VpcId: '{{ VpcId }}'
               NatGatewayId: '{{ ReviewLoop.CurrentIteratorValue }}'
-        - description: Capture Elastic IP allocation ID for this NAT Gateway.
+        - description: Capture Elastic IP allocation Id for this NAT Gateway.
           name: CaptureElasticIP
           action: aws:executeAwsApi
           nextStep: DeleteNatGateway

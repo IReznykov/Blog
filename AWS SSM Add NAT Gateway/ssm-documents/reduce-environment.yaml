@@ -4,7 +4,7 @@ description: |-
   Runbook Reduce-Environment deletes NAT Gateways and stops running EC2 instances.
 
   ## Input Parameters
-    * **VpcId**: (Required) Id of the target VPC where to create resources.
+    * **VpcId**: (Required) Id of the target VPC where to reduce resources.
     * **AutomationAssumeRole**: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
 assumeRole: '{{ AutomationAssumeRole }}'
 parameters:
