@@ -1,0 +1,125 @@
+schemaVersion: '0.3'
+description: |-
+  # Stop EC2 Instances
+  Runbook Stop-EC2Instances stops all running EC2 instances in private subnets in the given VPC.
+
+  ## Workflow
+    1. Describe all private subnets in the given VPC.
+    2. Search for and collect running EC2 instance Ids in those subnets.
+    3. If any, stop the instances and wait until they are fully stopping.
+
+  ## Input Parameters
+    * **VpcId**: (Required) Id of the target VPC where to create resources.
+    * **AutomationAssumeRole**: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
+
+  ## Minimum required IAM permissions
+    * `ec2:DescribeSubnets`
+    * `ec2:DescribeInstances`
+    * `ec2:StopInstances`
+assumeRole: '{{ AutomationAssumeRole }}'
+parameters:
+  VpcId:
+    type: String
+    description: (Required) Id of the target VPC where to delete resources.
+    allowedPattern: ^vpc-[a-z0-9]{8,17}$
+  AutomationAssumeRole:
+    type: AWS::IAM::Role::Arn
+    description: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
+    allowedPattern: ^$|arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role\/?[a-zA-Z_0-9+=,.@\-_\/]+
+variables:
+  InstanceIds:
+    type: StringList
+    description: Variable to keep EC2 instance Id
+mainSteps:
+  - description: Get all private subnets to search for EC2 instances.
+    name: DescribePrivateSubnets
+    action: aws:executeAwsApi
+    nextStep: DescribeInstances
+    isEnd: false
+    inputs:
+      Service: ec2
+      Api: DescribeSubnets
+      Filters:
+        - Name: vpc-id
+          Values:
+            - '{{ VpcId }}'
+        - Name: tag:Name
+          Values:
+            - '*private*'
+    outputs:
+      - Name: SubnetIds
+        Type: StringList
+        Selector: $.Subnets..SubnetId
+  - description: Look for the existing EC2 instances.
+    name: DescribeInstances
+    action: aws:executeAwsApi
+    nextStep: CheckInstanceId
+    isEnd: false
+    inputs:
+      Service: ec2
+      Api: DescribeInstances
+      Filters:
+        - Name: vpc-id
+          Values:
+            - '{{ VpcId }}'
+        - Name: subnet-id
+          Values:
+            - '{{ DescribePrivateSubnets.SubnetIds }}'
+        - Name: instance-state-name
+          Values:
+            - running
+    outputs:
+      - Name: FirstInstanceId
+        Selector: $.Reservations[0].Instances[0].InstanceId
+        Type: String
+      - Name: InstanceIds
+        Selector: $.Reservations..Instances[0].InstanceId
+        Type: StringList
+  - name: CheckInstanceId
+    action: aws:branch
+    isEnd: true
+    inputs:
+      Choices:
+        - NextStep: SetInstanceIds
+          Variable: '{{ DescribeInstances.FirstInstanceId }}'
+          Contains: i-
+  - description: Save EC2 instance IDs.
+    name: SetInstanceIds
+    action: aws:updateVariable
+    nextStep: StopInstances
+    isEnd: false
+    inputs:
+      Name: variable:InstanceIds
+      Value: '{{ DescribeInstances.InstanceIds }}'
+  - description: Stop EC2 Instances.
+    name: StopInstances
+    action: aws:executeAwsApi
+    nextStep: WaitRunningInstancesLoop
+    isEnd: false
+    onFailure: Abort
+    inputs:
+      Service: ec2
+      Api: StopInstances
+      InstanceIds: '{{ variable:InstanceIds }}'
+    outputs:
+      - Name: InstanceIds
+        Selector: $.StoppingInstances..InstanceId
+        Type: StringList
+  - name: WaitRunningInstancesLoop
+    action: aws:loop
+    isEnd: true
+    inputs:
+      Iterators: '{{ StopInstances.InstanceIds }}'
+      Steps:
+        - name: WaitForInstanceStateRunning
+          action: aws:waitForAwsResourceProperty
+          timeoutSeconds: 1200
+          isEnd: true
+          inputs:
+            Service: ec2
+            Api: DescribeInstances
+            PropertySelector: $.Reservations[0].Instances[0].State.Name
+            InstanceIds:
+              - '{{ WaitRunningInstancesLoop.CurrentIteratorValue }}'
+            DesiredValues:
+              - stopped

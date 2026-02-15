@@ -1,0 +1,284 @@
+schemaVersion: '0.3'
+description: |-
+  # Add NAT Gateway
+  Runbook looks up for NAT Gateway and creates a NAT Gateway in each
+  public subnet of the specified VPC if it doesn't exist, and updates
+  the private route tables to route internet-bound traffic.
+
+  ## Workflow
+    1. Identify all public subnets in the specified VPC.
+    2. For each subnet, check if a NAT Gateway already exists.
+    3. If no NAT Gateway is found, create a new NAT Gateway.
+    4. Wait until NAT Gateway is fully available.
+    5. Update private route tables to direct outbound traffic
+       through the NAT Gateway in the public subnet in the same AZ.
+
+  ## Input Parameters
+    * **VpcId**: (Required) Id of the target VPC where to create resources.
+    * **ProjectTag**: (Optional) Value for the Project tag (default value - 'blog').
+    * **EnvironmentTag**: (Optional) Value for the Environment tag (default value - 'dev').
+    * **AutomationAssumeRole**: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
+
+  ## Minimum required IAM permissions
+    * `ec2:DescribeVpcs`
+    * `ec2:DescribeSubnets`
+    * `ec2:DescribeTags`
+    * `ec2:DescribeRouteTables`
+    * `ec2:DescribeNatGateways`
+    * `ec2:DescribeAddresses`
+    * `ec2:AllocateAddress`
+    * `ec2:CreateNatGateway`
+    * `ec2:CreateRoute`
+    * `ec2:ReplaceRoute`
+assumeRole: '{{ AutomationAssumeRole }}'
+parameters:
+  VpcId:
+    type: String
+    description: (Required) Id of the VPC where to create resources.
+    allowedPattern: ^vpc-[a-z0-9]{8,17}$
+  ProjectTag:
+    type: String
+    description: (Optional) Value for the Project tag.
+    default: blog
+  EnvironmentTag:
+    type: String
+    description: (Optional) Value for the Environment tag.
+    default: dev
+  AutomationAssumeRole:
+    type: AWS::IAM::Role::Arn
+    description: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
+    allowedPattern: ^$|arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role\/?[a-zA-Z_0-9+=,.@\-_\/]+
+variables:
+  NatGatewayId:
+    type: String
+    description: Variable to keep NAT Gateway Id inside the loop.
+  NatGatewayIds:
+    type: StringList
+    description: Ids of created Nat Gateways.
+mainSteps:
+  - description: Get all public subnets to check for NAT Gateway
+    name: DescribePublicSubnets
+    action: aws:executeAwsApi
+    nextStep: ReviewNatGatewayLoop
+    isEnd: false
+    inputs:
+      Service: ec2
+      Api: DescribeSubnets
+      Filters:
+        - Name: vpc-id
+          Values:
+            - '{{ VpcId }}'
+        - Name: tag:Name
+          Values:
+            - '*public*'
+    outputs:
+      - Name: SubnetIds
+        Type: StringList
+        Selector: $.Subnets..SubnetId
+  - name: ReviewNatGatewayLoop
+    action: aws:loop
+    isEnd: true
+    inputs:
+      Iterators: '{{ DescribePublicSubnets.SubnetIds }}'
+      Steps:
+        - description: Get available NAT Gateway in the provided subnet. If NAT Gateway exists then check routes, otherwise create new NAT Gateway.
+          name: DescribeNatGateways_1
+          action: aws:executeAwsApi
+          nextStep: SetNatGatewayVariable_1
+          isEnd: false
+          onFailure: Abort
+          inputs:
+            Service: ec2
+            Api: DescribeNatGateways
+            Filters:
+              - Name: vpc-id
+                Values:
+                  - '{{ VpcId }}'
+              - Name: subnet-id
+                Values:
+                  - '{{ ReviewNatGatewayLoop.CurrentIteratorValue }}'
+              - Name: state
+                Values:
+                  - available
+          outputs:
+            - Name: NatGatewayId
+              Selector: $.NatGateways[0].NatGatewayId
+              Type: String
+        - description: Save NAT Gateway Id.
+          name: SetNatGatewayVariable_1
+          action: aws:updateVariable
+          nextStep: CheckNatGateways
+          isEnd: false
+          inputs:
+            Name: variable:NatGatewayId
+            Value: '{{ DescribeNatGateways_1.NatGatewayId }}'
+        - name: CheckNatGateways
+          action: aws:branch
+          inputs:
+            Choices:
+              - NextStep: AllocateEip
+                Not:
+                  Variable: '{{ DescribeNatGateways_1.NatGatewayId }}'
+                  Contains: nat-
+            Default: EnsureRoute
+        - description: Allocate public IP address.
+          name: AllocateEip
+          action: aws:executeAwsApi
+          nextStep: CreateNatGateway
+          isEnd: false
+          onFailure: Abort
+          inputs:
+            Service: ec2
+            Api: AllocateAddress
+            Domain: vpc
+          outputs:
+            - Name: AllocationId
+              Selector: $.AllocationId
+              Type: String
+        - description: Create NAT Gateway in the public subnet.
+          name: CreateNatGateway
+          action: aws:executeAwsApi
+          nextStep: WaitForNatGateway
+          isEnd: false
+          onFailure: Abort
+          inputs:
+            Service: ec2
+            Api: CreateNatGateway
+            AllocationId: '{{ AllocateEip.AllocationId }}'
+            SubnetId: '{{ ReviewNatGatewayLoop.CurrentIteratorValue }}'
+            TagSpecifications:
+              - ResourceType: natgateway
+                Tags:
+                  - Key: Project
+                    Value: '{{ ProjectTag }}'
+                  - Key: Environment
+                    Value: '{{ EnvironmentTag }}'
+          outputs:
+            - Name: NatGatewayId
+              Selector: $.NatGateway.NatGatewayId
+              Type: String
+        - description: Wait until NAT Gateway become available.
+          name: WaitForNatGateway
+          action: aws:waitForAwsResourceProperty
+          nextStep: SetNatGatewayVariable_2
+          isEnd: false
+          inputs:
+            Service: ec2
+            Api: DescribeNatGateways
+            PropertySelector: $.NatGateways[0].State
+            DesiredValues:
+              - available
+            NatGatewayIds:
+              - '{{ CreateNatGateway.NatGatewayId }}'
+        - description: Save NAT Gateway Id.
+          name: SetNatGatewayVariable_2
+          action: aws:updateVariable
+          nextStep: EnsureRoute
+          isEnd: false
+          inputs:
+            Name: variable:NatGatewayId
+            Value: '{{ CreateNatGateway.NatGatewayId }}'
+        - description: Add/update route to Internet via NAT Gateway in all route tables, associated with private subnets
+          name: EnsureRoute
+          action: aws:executeScript
+          nextStep: AddNatGatewayIds
+          isEnd: false
+          onFailure: Abort
+          inputs:
+            Runtime: python3.11
+            Handler: handler
+            Script: |-
+              import boto3
+              from botocore.exceptions import ClientError
+
+              def handler(event, context):
+                  ec2 = boto3.client("ec2")
+                  subnet_id = event["SubnetId"]
+                  nat_id = event["NatGatewayId"]
+
+                  # Get AZ from subnet
+                  subnet = ec2.describe_subnets(SubnetIds=[subnet_id])["Subnets"][0]
+                  az = subnet["AvailabilityZone"]
+                  vpc_id = subnet["VpcId"]
+                  print(f"Subnet {subnet_id} is in AZ {az}, VPC {vpc_id}")
+
+                  # Find private subnets in this AZ
+                  private_subnets = ec2.describe_subnets(
+                      Filters=[
+                          {"Name": "vpc-id", "Values": [vpc_id]},
+                          {"Name": "availability-zone", "Values": [az]},
+                          {"Name": "tag:Name", "Values": ["*private*"]},
+                      ]
+                  )["Subnets"]
+
+                  private_subnets = [s for s in private_subnets if not s.get("MapPublicIpOnLaunch", False)]
+                  if not private_subnets:
+                      return {"message": f"No private subnets found in {az}"}
+
+                  private_subnet_ids = [s["SubnetId"] for s in private_subnets]
+                  print(f"Private subnets in AZ {az}: {private_subnet_ids}")
+
+                  # Get associated route tables
+                  rt_response = ec2.describe_route_tables(
+                      Filters=[{"Name": "association.subnet-id", "Values": private_subnet_ids}]
+                  )
+                  rt_ids = list({rt["RouteTableId"] for rt in rt_response.get("RouteTables", [])})
+                  if not rt_ids:
+                      return {"message": f"No route tables found for private subnets in {az}"}
+
+                  print(f"Route tables to update: {rt_ids}")
+
+                  results = []
+                  # Add/replace routes
+                  for rt_id in rt_ids:
+                      try:
+                          # Check if existing route already points to this NAT
+                          rt = ec2.describe_route_tables(RouteTableIds=[rt_id])["RouteTables"][0]
+                          default_routes = [
+                              r for r in rt.get("Routes", [])
+                              if r.get("DestinationCidrBlock") == "0.0.0.0/0"
+                          ]
+
+                          # Create or replace route
+                          if default_routes:
+                              if default_routes[0].get("NatGatewayId") == nat_id:
+                                  msg = f"Route table {rt_id} already routes 0.0.0.0/0 via {nat_id}"
+                                  print(msg)
+                                  results.append(msg)
+                                  continue
+
+                              ec2.replace_route(
+                                  RouteTableId=rt_id,
+                                  DestinationCidrBlock="0.0.0.0/0",
+                                  NatGatewayId=nat_id
+                              )
+                              msg = f"Replaced route in {rt_id} via {nat_id}"
+                            
+                          else:
+                              ec2.create_route(
+                                  RouteTableId=rt_id,
+                                  DestinationCidrBlock="0.0.0.0/0",
+                                  NatGatewayId=nat_id
+                              )
+                              msg = f"Created route in {rt_id} via {nat_id}"
+
+                          print(msg)
+                          results.append(msg)
+
+                      except Exception as e:
+                          msg = f"Error processing route table {rt_id}: {str(e)}"
+                          print(msg)
+                          results.append(msg)
+
+                  return {"message": results}
+            InputPayload:
+              SubnetId: '{{ ReviewNatGatewayLoop.CurrentIteratorValue }}'
+              NatGatewayId: '{{ variable:NatGatewayId }}'
+        - name: AddNatGatewayIds
+          action: aws:updateVariable
+          isEnd: true
+          inputs:
+            Name: variable:NatGatewayIds
+            Value:
+              - '{{ variable:NatGatewayIds }}'
+              - '{{ variable:NatGatewayId }}'

@@ -1,0 +1,44 @@
+schemaVersion: '0.3'
+description: |-
+  # Reduce Environment
+  Runbook Reduce-Environment deletes NAT Gateways and stops running EC2 instances.
+
+  ## Input Parameters
+    * **VpcId**: (Required) Id of the target VPC where to reduce resources.
+    * **AutomationAssumeRole**: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
+assumeRole: '{{ AutomationAssumeRole }}'
+parameters:
+  VpcId:
+    type: String
+    description: (Required) Id of the VPC where to create resources.
+    allowedPattern: ^vpc-[a-z0-9]{8,17}$
+  AutomationAssumeRole:
+    type: AWS::IAM::Role::Arn
+    description: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
+    allowedPattern: ^$|arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role\/?[a-zA-Z_0-9+=,.@\-_\/]+
+mainSteps:
+  - description: Runbook deletes NAT Gateways in all subnets in the given VPC, removes routes in private route tables that use them, and releases Elastic IPs.
+    name: DeleteNATGateways
+    action: aws:executeAutomation
+    maxAttempts: 2
+    timeoutSeconds: 600
+    nextStep: StopEC2Instances
+    isEnd: false
+    onFailure: Abort
+    inputs:
+      DocumentName: Delete-NATGateways
+      RuntimeParameters:
+        VpcId: '{{ VpcId }}'
+        AutomationAssumeRole: '{{ AutomationAssumeRole }}'
+  - description: Runbook stops all running EC2 instances in private subnets in the given VPC.
+    name: StopEC2Instances
+    action: aws:executeAutomation
+    maxAttempts: 2
+    timeoutSeconds: 600
+    isEnd: true
+    onFailure: Abort
+    inputs:
+      DocumentName: Stop-EC2Instances
+      RuntimeParameters:
+        VpcId: '{{ VpcId }}'
+        AutomationAssumeRole: '{{ AutomationAssumeRole }}'
